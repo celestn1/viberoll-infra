@@ -1,0 +1,73 @@
+# ------------------------------
+# viberoll-infra/main.tf
+# ------------------------------
+provider "aws" {
+  region = var.aws_region
+}
+
+module "vpc" {
+  source       = "./modules/vpc"
+  project_name = var.project_name
+  cidr_block   = var.vpc_cidr
+  azs          = var.azs
+}
+
+module "ecr" {
+  source       = "./modules/ecr"
+  repo_name    = var.ecr_repo_name
+  project_name = var.project_name
+}
+
+module "alb" {
+  source             = "./modules/alb"
+  vpc_id             = module.vpc.vpc_id
+  public_subnets     = module.vpc.public_subnets
+  security_group_ids = [module.vpc.alb_sg_id]
+  project_name       = var.project_name
+}
+
+module "ecs" {
+  source             = "./modules/ecs"
+  cluster_name       = var.project_name
+  container_image    = var.container_image
+  private_subnets    = module.vpc.private_subnets
+  security_group_ids = [module.vpc.ecs_sg_id]
+  target_group_arn   = module.alb.target_group_arn
+  alb_listener_arn   = module.alb.listener_arn
+  project_name       = var.project_name
+}
+
+module "rds" {
+  source       = "./modules/rds"
+  db_name      = var.db_name
+  username     = var.db_username
+  password     = var.db_password
+  subnet_ids   = module.vpc.private_subnets
+  vpc_id       = module.vpc.vpc_id
+  project_name = var.project_name
+}
+
+module "elasticache" {
+  source       = "./modules/elasticache"
+  subnet_ids   = module.vpc.private_subnets
+  vpc_id       = module.vpc.vpc_id
+  project_name = var.project_name
+}
+
+module "secrets" {
+  source       = "./modules/secrets"
+  secrets_map  = var.secrets_map
+  project_name = var.project_name
+}
+
+module "waf" {
+  source       = "./modules/waf"
+  alb_arn      = module.alb.alb_arn
+  project_name = var.project_name
+}
+
+module "cloudwatch" {
+  source         = "./modules/cloudwatch"
+  log_group_name = "/ecs/${var.project_name}"
+  project_name   = var.project_name
+}
