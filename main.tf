@@ -1,9 +1,51 @@
 # ------------------------------
 # viberoll-infra/main.tf
 # ------------------------------
+
 provider "aws" {
   region = var.aws_region
 }
+
+# ----------------------------------------
+# Locals: Dynamic secrets (referenced from terraform.tfvars)
+# ----------------------------------------
+locals {
+  secrets_map = {
+    # APPLICATION SETTINGS
+    NODE_ENV                     = "production"
+    HOST                         = "http://localhost:"
+    PORT                         = "4001"
+
+    # DATABASE CONFIGURATION
+    DATABASE_URL = "postgres://${var.db_username}:${var.db_password}@${module.rds.rds_endpoint}:5432/${var.db_name}"
+    REDIS_URL    = "redis://${module.elasticache.redis_endpoint}:6379"
+
+    # JWT AUTHENTICATION
+    JWT_SECRET                    = var.jwt_secret
+    JWT_REFRESH_SECRET            = var.jwt_refresh_secret
+    SALT_ROUNDS                   = "10"
+    JWT_ACCESS_TOKEN_EXPIRATION  = "24h"
+    JWT_REFRESH_TOKEN_EXPIRATION = "7d"
+
+    # BLOCKCHAIN CONFIGURATION
+    RPC_URL              = "https://polygon-rpc.com"
+    WALLET_PRIVATE_KEY   = var.wallet_private_key
+    NFT_CONTRACT_ADDRESS = var.nft_contract_address
+
+    # OPENAI API CONFIGURATION
+    OPENAI_API_ENDPOINT = "https://api.openai.com/v1/engines/davinci/completions"
+    OPENAI_API_KEY      = var.openai_api_key
+
+    # ADMIN SEED ACCOUNT
+    ADMIN_EMAIL    = var.admin_email
+    ADMIN_PASSWORD = var.admin_password
+    ADMIN_USERNAME = var.admin_username
+  }
+}
+
+# ----------------------------------------
+# Modules
+# ----------------------------------------
 
 module "vpc" {
   source       = "./modules/vpc"
@@ -56,7 +98,7 @@ module "elasticache" {
 
 module "secrets" {
   source       = "./modules/secrets"
-  secrets_map  = var.secrets_map
+  secrets_map  = local.secrets_map
   project_name = var.project_name
 }
 

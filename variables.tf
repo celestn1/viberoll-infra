@@ -51,6 +51,56 @@ variable "db_password" {
   sensitive   = true
 }
 
+# ------------------------------
+# Secure Secrets for Dynamic Local Map
+# ------------------------------
+
+variable "jwt_secret" {
+  description = "JWT access token secret"
+  type        = string
+  sensitive   = true
+}
+
+variable "jwt_refresh_secret" {
+  description = "JWT refresh token secret"
+  type        = string
+  sensitive   = true
+}
+
+variable "wallet_private_key" {
+  description = "Private key for blockchain wallet"
+  type        = string
+  sensitive   = true
+}
+
+variable "nft_contract_address" {
+  description = "NFT contract address for the application"
+  type        = string
+}
+
+variable "openai_api_key" {
+  description = "OpenAI API key used for content generation"
+  type        = string
+  sensitive   = true
+}
+
+variable "admin_email" {
+  description = "Seed admin user email"
+  type        = string
+}
+
+variable "admin_password" {
+  description = "Seed admin user password"
+  type        = string
+  sensitive   = true
+}
+
+variable "admin_username" {
+  description = "Seed admin user username"
+  type        = string
+}
+
+# Optional fallback variable (legacy usage — no longer required for secrets)
 variable "secrets_map" {
   description = "Map of secrets to store in AWS Secrets Manager"
   type        = map(string)
