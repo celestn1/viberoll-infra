@@ -12,7 +12,7 @@ crash.log
 
 # Ignore Terraform workspace files
 .terraform.lock.hcl
-viberoll-bootstrap/
+
 
 # VSCode settings
 .vscode/
