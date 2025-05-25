@@ -12,18 +12,18 @@ provider "aws" {
 locals {
   secrets_map = {
     # APPLICATION SETTINGS
-    NODE_ENV                     = "production"
-    HOST                         = "http://localhost:"
-    PORT                         = "4001"
+    NODE_ENV = "production"
+    HOST     = "http://localhost:"
+    PORT     = "4001"
 
     # DATABASE CONFIGURATION
     DATABASE_URL = "postgres://${var.db_username}:${var.db_password}@${module.rds.rds_endpoint}:5432/${var.db_name}"
     REDIS_URL    = "redis://${module.elasticache.redis_endpoint}:6379"
 
     # JWT AUTHENTICATION
-    JWT_SECRET                    = var.jwt_secret
-    JWT_REFRESH_SECRET            = var.jwt_refresh_secret
-    SALT_ROUNDS                   = "10"
+    JWT_SECRET                   = var.jwt_secret
+    JWT_REFRESH_SECRET           = var.jwt_refresh_secret
+    SALT_ROUNDS                  = "10"
     JWT_ACCESS_TOKEN_EXPIRATION  = "24h"
     JWT_REFRESH_TOKEN_EXPIRATION = "7d"
 
