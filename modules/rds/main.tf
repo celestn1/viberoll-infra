@@ -11,6 +11,10 @@ resource "aws_db_subnet_group" "default" {
     Environment = "ephemeral"
     Expire      = "true"
   }
+
+  lifecycle {
+    prevent_destroy = false
+  }
 }
 
 resource "aws_security_group" "rds" {
@@ -36,12 +40,16 @@ resource "aws_security_group" "rds" {
     Environment = "ephemeral"
     Expire      = "true"
   }
+
+  lifecycle {
+    prevent_destroy = false
+  }
 }
 
 resource "aws_db_instance" "postgres" {
   identifier              = "${var.project_name}-postgres"
   engine                  = "postgres"
-  engine_version          = "17.*"
+  engine_version          = "14.9"
   instance_class          = "db.t3.micro"                  # ✅ Free Tier eligible
   allocated_storage       = 20                             # ✅ Free Tier includes up to 20 GB
   db_name                 = var.db_name
@@ -58,6 +66,11 @@ resource "aws_db_instance" "postgres" {
     Project     = var.project_name
     Environment = "ephemeral"
     Expire      = "true"
+  }
+
+  lifecycle {
+    prevent_destroy = false
+    ignore_changes  = [parameter_group_name]
   }
 }
 

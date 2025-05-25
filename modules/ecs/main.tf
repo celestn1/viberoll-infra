@@ -8,6 +8,10 @@ resource "aws_ecs_cluster" "this" {
     Environment = "ephemeral"
     Expire      = "true"
   }
+
+  lifecycle {
+    prevent_destroy = false
+  }
 }
 
 resource "aws_ecs_task_definition" "this" {
@@ -46,6 +50,11 @@ resource "aws_ecs_task_definition" "this" {
     Environment = "ephemeral"
     Expire      = "true"
   }
+
+  lifecycle {
+    prevent_destroy = false
+    ignore_changes  = [container_definitions]
+  }
 }
 
 resource "aws_ecs_service" "this" {
@@ -74,6 +83,11 @@ resource "aws_ecs_service" "this" {
     Environment = "ephemeral"
     Expire      = "true"
   }
+
+  lifecycle {
+    prevent_destroy = false
+    ignore_changes  = [desired_count, task_definition]
+  }
 }
 
 resource "aws_iam_role" "execution_role" {
@@ -96,6 +110,10 @@ resource "aws_iam_role" "execution_role" {
     Project     = var.project_name
     Environment = "ephemeral"
     Expire      = "true"
+  }
+
+  lifecycle {
+    prevent_destroy = false
   }
 }
 

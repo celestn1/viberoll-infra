@@ -20,8 +20,9 @@ resource "aws_ecr_repository" "repo" {
   }
 
   lifecycle {
-    prevent_destroy = false # Allow easy teardown after testing
-    ignore_changes  = [name]
+    create_before_destroy = false
+    prevent_destroy       = false # Allow easy teardown after testing
+    ignore_changes        = [name, image_scanning_configuration]
   }
 }
 

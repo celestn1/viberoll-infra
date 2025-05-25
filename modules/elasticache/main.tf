@@ -11,6 +11,10 @@ resource "aws_elasticache_subnet_group" "default" {
     Environment = "ephemeral"
     Expire      = "true"
   }
+
+  lifecycle {
+    prevent_destroy = false
+  }
 }
 
 resource "aws_security_group" "redis" {
@@ -36,6 +40,10 @@ resource "aws_security_group" "redis" {
     Environment = "ephemeral"
     Expire      = "true"
   }
+
+  lifecycle {
+    prevent_destroy = false
+  }
 }
 
 resource "aws_elasticache_cluster" "redis" {
@@ -52,6 +60,11 @@ resource "aws_elasticache_cluster" "redis" {
     Project     = var.project_name
     Environment = "ephemeral"
     Expire      = "true"
+  }
+
+  lifecycle {
+    prevent_destroy = false
+    ignore_changes  = [parameter_group_name]
   }
 }
 

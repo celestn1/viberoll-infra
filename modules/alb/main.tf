@@ -1,6 +1,7 @@
 # ------------------------------
 # viberoll-infra/modules/alb/main.tf
 # ------------------------------
+
 resource "aws_lb" "alb" {
   name               = "${var.project_name}-alb"
   internal           = false
@@ -12,15 +13,20 @@ resource "aws_lb" "alb" {
     Project     = var.project_name
     Environment = "ephemeral"
     Expire      = "true"
-  }
+  } 
+
+  lifecycle {
+    prevent_destroy = false
+    ignore_changes  = [name, tags]
+  }  
 }
 
 resource "aws_lb_target_group" "tg" {
-  name     = "${var.project_name}-tg"
-  port     = 4001
-  protocol = "HTTP"
-  vpc_id   = var.vpc_id
-  target_type = "ip"  # Required for Fargate (awsvpc)
+  name        = "${var.project_name}-tg"
+  port        = 4001
+  protocol    = "HTTP"
+  vpc_id      = var.vpc_id
+  target_type = "ip" # Required for Fargate
 
   health_check {
     path                = "/"
@@ -37,6 +43,11 @@ resource "aws_lb_target_group" "tg" {
     Environment = "ephemeral"
     Expire      = "true"
   }
+
+  lifecycle {
+    prevent_destroy = false
+    ignore_changes  = [name, tags]
+  }
 }
 
 resource "aws_lb_listener" "http" {
@@ -48,6 +59,8 @@ resource "aws_lb_listener" "http" {
     type             = "forward"
     target_group_arn = aws_lb_target_group.tg.arn
   }
+
+  depends_on = [aws_lb_target_group.tg]
 }
 
 output "alb_arn" {
