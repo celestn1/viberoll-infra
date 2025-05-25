@@ -23,6 +23,9 @@ resource "aws_secretsmanager_secret" "secrets" {
     Expire      = "true"
     Destroy_By  = "2025-05-25T18:00:00Z" # Optional: manual tracking of teardown deadline
   }
+  lifecycle {
+    prevent_destroy = true  # Prevents deletion by terraform destroy
+  }
 }
 
 resource "aws_secretsmanager_secret_version" "secrets_version" {
