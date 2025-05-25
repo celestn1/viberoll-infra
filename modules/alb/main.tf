@@ -48,6 +48,8 @@ resource "aws_lb_target_group" "tg" {
     prevent_destroy = false
     ignore_changes  = [name, tags]
   }
+  
+  depends_on = [aws_lb_listener.http]
 }
 
 resource "aws_lb_listener" "http" {

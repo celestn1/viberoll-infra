@@ -116,3 +116,9 @@ variable "secrets_map" {
   type        = map(string)
   default     = {}
 }
+
+variable "repo_check_enabled" {
+  type    = bool
+  default = true
+  description = "Enable lookup of existing ECR repository to avoid duplicate creation"
+}

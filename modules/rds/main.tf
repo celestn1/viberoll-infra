@@ -49,7 +49,7 @@ resource "aws_security_group" "rds" {
 resource "aws_db_instance" "postgres" {
   identifier              = "${var.project_name}-postgres"
   engine                  = "postgres"
-  engine_version          = "14.9"
+  engine_version          = null
   instance_class          = "db.t3.micro"                  # ✅ Free Tier eligible
   allocated_storage       = 20                             # ✅ Free Tier includes up to 20 GB
   db_name                 = var.db_name
