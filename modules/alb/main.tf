@@ -2,6 +2,18 @@
 # viberoll-infra/modules/alb/main.tf
 # ------------------------------
 
+variable "create_alb" {
+  type        = bool
+  description = "Whether to create a new ALB or assume it already exists"
+  default     = true
+}
+
+variable "alb_arn" {
+  type        = string
+  description = "ARN of existing ALB to use if not creating a new one"
+  default     = ""
+}
+
 variable "vpc_id" {
   type = string
 }
@@ -18,25 +30,9 @@ variable "project_name" {
   type = string
 }
 
-variable "force_create_alb" {
-  type    = bool
-  default = false
-}
-
-# Attempt to find an existing ALB with this name
-data "aws_lb" "existing" {
-  name = "${var.project_name}-alb"
-}
-
-locals {
-  existing_alb_arn = try(data.aws_lb.existing.arn, null)
-  alb_exists       = local.existing_alb_arn != null
-  use_existing     = !var.force_create_alb && local.alb_exists
-  alb_arn          = local.use_existing ? local.existing_alb_arn : aws_lb.alb[0].arn
-}
-
+# ➕ Create ALB conditionally
 resource "aws_lb" "alb" {
-  count              = local.use_existing ? 0 : 1
+  count              = var.create_alb ? 1 : 0
   name               = "${var.project_name}-alb"
   internal           = false
   load_balancer_type = "application"
@@ -55,6 +51,7 @@ resource "aws_lb" "alb" {
   }
 }
 
+# ➕ Target Group
 resource "aws_lb_target_group" "tg" {
   name        = "${var.project_name}-tg"
   port        = 4001
@@ -84,8 +81,10 @@ resource "aws_lb_target_group" "tg" {
   }
 }
 
+# ➕ Listener – only created if ALB is managed by Terraform
 resource "aws_lb_listener" "http" {
-  load_balancer_arn = local.alb_arn
+  count             = var.create_alb ? 1 : 0
+  load_balancer_arn = aws_lb.alb[0].arn
   port              = 80
   protocol          = "HTTP"
 
@@ -95,12 +94,13 @@ resource "aws_lb_listener" "http" {
   }
 }
 
+# 🧾 Outputs – resolve dynamically whether ALB was created or passed in
 output "alb_arn" {
-  value = local.alb_arn
+  value = var.create_alb ? aws_lb.alb[0].arn : var.alb_arn
 }
 
 output "alb_dns" {
-  value = local.use_existing ? data.aws_lb.existing.dns_name : aws_lb.alb[0].dns_name
+  value = var.create_alb ? aws_lb.alb[0].dns_name : ""
 }
 
 output "target_group_arn" {
@@ -108,5 +108,5 @@ output "target_group_arn" {
 }
 
 output "listener_arn" {
-  value = aws_lb_listener.http.arn
+  value = var.create_alb ? aws_lb_listener.http[0].arn : ""
 }

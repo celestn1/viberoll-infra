@@ -37,6 +37,8 @@ module "ecr" {
 
 module "alb" {
   source             = "./modules/alb"
+  create_alb         = true # or false to skip ALB creation
+  alb_arn            = ""   # if using existing ALB
   vpc_id             = module.vpc.vpc_id
   public_subnets     = module.vpc.public_subnets
   security_group_ids = [module.vpc.alb_sg_id]
