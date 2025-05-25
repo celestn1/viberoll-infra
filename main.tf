@@ -6,9 +6,6 @@ provider "aws" {
   region = var.aws_region
 }
 
-# ----------------------------------------
-# Locals: Dynamic secrets (referenced from terraform.tfvars)
-# ----------------------------------------
 locals {
   base_secrets = var.secrets_map
 
@@ -23,10 +20,6 @@ locals {
     ManagedBy   = "Terraform"
   }
 }
-
-# ----------------------------------------
-# Modules
-# ----------------------------------------
 
 module "vpc" {
   source       = "./modules/vpc"

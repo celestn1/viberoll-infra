@@ -56,7 +56,9 @@ jobs:
         run: terraform validate
 
       - name: Import Existing Secrets into Terraform State
-        run: bash ./import-secrets.sh
+        run: |
+            set -x  # print all commands
+            bash ./import-secrets.sh
 
       - name: Debug Required Secrets
         run: |
