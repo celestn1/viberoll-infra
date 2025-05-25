@@ -26,7 +26,7 @@ resource "aws_secretsmanager_secret" "secrets" {
 
   lifecycle {
     prevent_destroy = true
-    ignore_changes  = [name] # Prevent recreation error if it already exists
+    ignore_changes  = [name] # Prevent recreation error if it already exists 0
   }
 }
 
