@@ -118,7 +118,7 @@ variable "secrets_map" {
 }
 
 variable "repo_check_enabled" {
-  type    = bool
-  default = true
-  description = "Enable lookup of existing ECR repository to avoid duplicate creation"
+  type        = bool
+  default     = true
+  description = "Enable check for existing ECR repo before creating"
 }
