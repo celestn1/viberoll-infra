@@ -1,3 +1,6 @@
+# ------------------------------
+# .github/workflows/destroy.yml
+# ------------------------------
 name: Destroy AWS Infra
 
 on:
@@ -29,6 +32,33 @@ jobs:
 
       - name: Terraform Init
         run: terraform init
+
+      - name: Terraform Format
+        run: terraform fmt -check
+
+      - name: Terraform Validate
+        run: terraform validate
+
+      - name: Debug Required Secrets
+        run: |
+          echo "🔍 Verifying required secrets..."
+          REQUIRED_SECRETS=(
+            "TF_JWT_SECRET"
+            "TF_JWT_REFRESH_SECRET"
+            "TF_DB_PASSWORD"
+          )
+          for key in "${REQUIRED_SECRETS[@]}"; do
+            if [ -z "${!key}" ]; then
+              echo "❌ Missing secret: $key"
+              exit 1
+            else
+              echo "✅ $key is set"
+            fi
+          done
+        env:
+          TF_JWT_SECRET: ${{ secrets.TF_JWT_SECRET }}
+          TF_JWT_REFRESH_SECRET: ${{ secrets.TF_JWT_REFRESH_SECRET }}
+          TF_DB_PASSWORD: ${{ secrets.TF_DB_PASSWORD }}
 
       - name: Terraform Plan (Destroy)
         run: |
