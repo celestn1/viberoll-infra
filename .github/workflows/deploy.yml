@@ -47,7 +47,7 @@ jobs:
       - name: Upload Terraform Plan Artifact
         uses: actions/upload-artifact@v3
         with:
-          name: terraform-plan
+          name: tfplan
           path: tfplan
 
       - name: Terraform Apply
