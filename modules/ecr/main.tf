@@ -47,7 +47,7 @@ resource "aws_ecr_repository" "repo" {
 
   lifecycle {
     create_before_destroy = false
-    prevent_destroy       = false
+    prevent_destroy       = true
     ignore_changes        = [name, image_scanning_configuration]
   }
 }

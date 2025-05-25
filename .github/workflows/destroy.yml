@@ -67,6 +67,7 @@ jobs:
             -var="vpc_cidr=${{ secrets.TF_VPC_CIDR }}" \
             -var='azs=["${{ secrets.TF_AZ1 }}","${{ secrets.TF_AZ2 }}"]' \
             -var="ecr_repo_name=${{ secrets.TF_ECR_REPO_NAME }}" \
+            -var="container_image=${{ secrets.TF_CONTAINER_IMAGE }}" \
             -var="db_name=${{ secrets.TF_DB_NAME }}" \
             -var="db_username=${{ secrets.TF_DB_USERNAME }}" \
             -var="db_password=${{ secrets.TF_DB_PASSWORD }}" \
@@ -105,6 +106,7 @@ jobs:
           -var="vpc_cidr=${{ secrets.TF_VPC_CIDR }}" \
           -var='azs=["${{ secrets.TF_AZ1 }}","${{ secrets.TF_AZ2 }}"]' \
           -var="ecr_repo_name=${{ secrets.TF_ECR_REPO_NAME }}" \
+          -var="container_image=${{ secrets.TF_CONTAINER_IMAGE }}" \
           -var="db_name=${{ secrets.TF_DB_NAME }}" \
           -var="db_username=${{ secrets.TF_DB_USERNAME }}" \
           -var="db_password=${{ secrets.TF_DB_PASSWORD }}" \
