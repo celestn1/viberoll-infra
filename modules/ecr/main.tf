@@ -1,7 +1,3 @@
-# ------------------------------
-# viberoll-infra/modules/ecr/main.tf
-#------------------------------
-
 variable "repo_name" {
   type        = string
   description = "Name of the ECR repository"
@@ -12,7 +8,13 @@ variable "project_name" {
   description = "Project name used for tagging"
 }
 
-# 🧪 Try fetching existing ECR repo using a try-safe local
+variable "repo_check_enabled" {
+  type        = bool
+  default     = true
+  description = "Enable lookup of existing ECR repository"
+}
+
+# 🔍 Try fetching existing ECR repo if enabled
 data "aws_ecr_repository" "existing" {
   count = var.repo_check_enabled ? 1 : 0
   name  = var.repo_name
@@ -23,7 +25,7 @@ locals {
   repo_exists       = local.existing_repo_url != null
 }
 
-# ✅ Only create if the repository does NOT exist
+# ✅ Create only if repo does not exist
 resource "aws_ecr_repository" "repo" {
   count = local.repo_exists ? 0 : 1
 
@@ -50,9 +52,7 @@ resource "aws_ecr_repository" "repo" {
   }
 }
 
-# 🔄 Output handles either condition
+# ✅ Correct single-expression output block
 output "repository_url" {
-  value = local.repo_exists ?
-    local.existing_repo_url :
-    aws_ecr_repository.repo[0].repository_url
+  value = local.repo_exists ? local.existing_repo_url : aws_ecr_repository.repo[0].repository_url
 }
