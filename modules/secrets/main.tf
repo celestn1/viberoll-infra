@@ -21,7 +21,7 @@ resource "aws_secretsmanager_secret" "secrets" {
     Project     = var.project_name
     Environment = "ephemeral"
     Expire      = "true"
-    Destroy_By  = "2025-05-25T18:00:00Z" # Optional: manual tracking of teardown deadline
+    Destroy_By  = "2025-05-25T18:00:00Z" # Optional: manual tracking of teardown
   }
   lifecycle {
     prevent_destroy = true  # Prevents deletion by terraform destroy
