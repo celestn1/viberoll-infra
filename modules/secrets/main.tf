@@ -12,21 +12,25 @@ variable "project_name" {
   description = "Project name used as a prefix for secrets"
 }
 
+variable "tags" {
+  type        = map(string)
+  description = "Common tags to apply to each secret"
+  default     = {}
+}
+
 resource "aws_secretsmanager_secret" "secrets" {
   for_each = var.secrets_map
 
-  name = "${var.project_name}-${each.key}"
+  name        = "${var.project_name}-${each.key}"
+  description = "Terraform-managed secret: ${each.key}"
 
-  tags = {
-    Project     = var.project_name
-    Environment = "ephemeral"
-    Expire      = "true"
-    Destroy_By  = "2025-05-25T18:00:00Z"
-  }
+  tags = merge(var.tags, {
+    Name = "${var.project_name}-${each.key}"
+  })
 
   lifecycle {
     prevent_destroy = true
-    ignore_changes  = [name] # Prevent recreation error if it already exists 0
+    ignore_changes  = [tags_all]
   }
 }
 

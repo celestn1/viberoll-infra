@@ -16,6 +16,12 @@ locals {
     DATABASE_URL = "postgres://${var.db_username}:${var.db_password}@${module.rds.rds_endpoint}:5432/${var.db_name}"
     REDIS_URL    = "redis://${module.elasticache.redis_endpoint}:6379"
   })
+
+  common_tags = {
+    Project     = var.project_name
+    Environment = "production"
+    ManagedBy   = "Terraform"
+  }
 }
 
 # ----------------------------------------
@@ -37,8 +43,8 @@ module "ecr" {
 
 module "alb" {
   source             = "./modules/alb"
-  create_alb         = true # or false to skip ALB creation
-  alb_arn            = ""   # if using existing ALB
+  create_alb         = true
+  alb_arn            = ""
   vpc_id             = module.vpc.vpc_id
   public_subnets     = module.vpc.public_subnets
   security_group_ids = [module.vpc.alb_sg_id]
@@ -77,6 +83,7 @@ module "secrets" {
   source       = "./modules/secrets"
   secrets_map  = local.secrets_map
   project_name = var.project_name
+  tags         = local.common_tags
 }
 
 module "waf" {
