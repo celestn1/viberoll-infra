@@ -10,6 +10,10 @@ crash.log
 # Local .terraform dir
 .terraform/
 
+# Ignore Terraform workspace files
+.terraform.lock.hcl
+viberoll-bootstrap/
+
 # VSCode settings
 .vscode/
 
