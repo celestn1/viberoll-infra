@@ -26,10 +26,15 @@ resource "aws_secretsmanager_secret" "secrets" {
 }
 
 resource "aws_secretsmanager_secret_version" "secrets_version" {
-  for_each      = var.secrets_map
+  for_each = {
+    for key, value in var.secrets_map :
+    key => value if try(trim(value), "") != ""
+  }
+
   secret_id     = aws_secretsmanager_secret.secrets[each.key].id
   secret_string = each.value
 }
+
 
 output "secret_arns" {
   description = "Map of secret keys to their ARNs"
