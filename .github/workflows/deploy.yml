@@ -42,7 +42,7 @@ jobs:
         run: terraform validate
 
       - name: Terraform Plan
-        run: terraform plan -out=tfplan
+        run: terraform plan -var-file="terraform.tfvars" -out=tfplan
         env:
           TF_LOG: DEBUG
 
