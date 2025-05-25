@@ -3,9 +3,9 @@
 # ------------------------------
 terraform {
   backend "s3" {
-    bucket         = "viberoll-terraform-state"
+    bucket         = "viberoll-terraform-state-02"
     key            = "prod/terraform.tfstate"
-    region         = "us-east-1"
+    region         = "eu-west-2"
     dynamodb_table = "viberoll-locks"
     encrypt        = true
   }
