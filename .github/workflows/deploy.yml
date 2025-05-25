@@ -32,20 +32,6 @@ jobs:
         with:
           terraform_version: 1.6.6
 
-      - name: Restore AWS Secrets (if scheduled for deletion)
-        run: |
-          echo "🔄 Restoring secrets scheduled for deletion..."
-          aws secretsmanager list-secrets \
-            --region $AWS_REGION \
-            --include-planned-deletion \
-            --query 'SecretList[].Name' \
-            --output text \
-          | tr '\t' '\n' \
-          | while read name; do
-              echo "🔁 Restoring $name"
-              aws secretsmanager restore-secret --region $AWS_REGION --secret-id "$name" || echo "⚠️ Could not restore $name"
-            done
-
       - name: Terraform Init
         run: terraform init
 
@@ -54,11 +40,6 @@ jobs:
 
       - name: Terraform Validate
         run: terraform validate
-
-      - name: Import Existing Secrets into Terraform State
-        run: |
-            set -x  # print all commands
-            bash ./import-secrets.sh
 
       - name: Debug Required Secrets
         run: |
