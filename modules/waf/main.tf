@@ -1,6 +1,7 @@
 # ------------------------------
 # viberoll-infra/modules/waf/main.tf
 # ------------------------------
+
 resource "aws_wafv2_web_acl" "waf" {
   name        = "${var.project_name}-waf"
   description = "WAF for ALB"
@@ -39,7 +40,9 @@ resource "aws_wafv2_web_acl" "waf" {
   }
 
   tags = {
-    Project = var.project_name
+    Project     = var.project_name
+    Environment = "ephemeral"
+    Expire      = "true"
   }
 }
 

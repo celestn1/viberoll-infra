@@ -4,7 +4,9 @@
 resource "aws_ecs_cluster" "this" {
   name = "${var.cluster_name}-cluster"
   tags = {
-    Project = var.project_name
+    Project     = var.project_name
+    Environment = "ephemeral"
+    Expire      = "true"
   }
 }
 
@@ -12,8 +14,8 @@ resource "aws_ecs_task_definition" "this" {
   family                   = "${var.project_name}-task"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
-  cpu                      = "512"
-  memory                   = "1024"
+  cpu                      = "256"     # Minimal CPU for Free Tier eligible (0.25 vCPU)
+  memory                   = "512"     # 0.5 GB memory to stay within Free Tier
   execution_role_arn       = aws_iam_role.execution_role.arn
   task_role_arn            = aws_iam_role.execution_role.arn
 
@@ -40,7 +42,9 @@ resource "aws_ecs_task_definition" "this" {
   ])
 
   tags = {
-    Project = var.project_name
+    Project     = var.project_name
+    Environment = "ephemeral"
+    Expire      = "true"
   }
 }
 
@@ -66,7 +70,9 @@ resource "aws_ecs_service" "this" {
   depends_on = [var.alb_listener_arn]
 
   tags = {
-    Project = var.project_name
+    Project     = var.project_name
+    Environment = "ephemeral"
+    Expire      = "true"
   }
 }
 
@@ -87,7 +93,9 @@ resource "aws_iam_role" "execution_role" {
   })
 
   tags = {
-    Project = var.project_name
+    Project     = var.project_name
+    Environment = "ephemeral"
+    Expire      = "true"
   }
 }
 
@@ -126,5 +134,5 @@ variable "project_name" {
 
 variable "aws_region" {
   type    = string
-  default = "us-east-1"
+  default = "eu-west-2"
 }

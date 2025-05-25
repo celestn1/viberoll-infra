@@ -38,11 +38,13 @@ variable "container_image" {
 variable "db_name" {
   description = "Name of the PostgreSQL database"
   type        = string
+  default     = "viberoll"
 }
 
 variable "db_username" {
   description = "Username for the PostgreSQL database"
   type        = string
+  default     = "viberoll_admin"
 }
 
 variable "db_password" {
@@ -52,7 +54,7 @@ variable "db_password" {
 }
 
 # ------------------------------
-# Secure Secrets for Dynamic Local Map
+# Secure Secrets for Runtime Injection
 # ------------------------------
 
 variable "jwt_secret" {
@@ -71,22 +73,26 @@ variable "wallet_private_key" {
   description = "Private key for blockchain wallet"
   type        = string
   sensitive   = true
+  default     = ""
 }
 
 variable "nft_contract_address" {
   description = "NFT contract address for the application"
   type        = string
+  default     = ""
 }
 
 variable "openai_api_key" {
   description = "OpenAI API key used for content generation"
   type        = string
   sensitive   = true
+  default     = ""
 }
 
 variable "admin_email" {
   description = "Seed admin user email"
   type        = string
+  default     = "admin@viberoll.dev"
 }
 
 variable "admin_password" {
@@ -98,11 +104,15 @@ variable "admin_password" {
 variable "admin_username" {
   description = "Seed admin user username"
   type        = string
+  default     = "viberoll_admin"
 }
 
-# Optional fallback variable (legacy usage — no longer required for secrets)
+# ------------------------------
+# Optional Dynamic Secrets Map (preferred via GitHub Actions)
+# ------------------------------
+
 variable "secrets_map" {
-  description = "Map of secrets to store in AWS Secrets Manager"
+  description = "Map of runtime secrets injected dynamically from CI"
   type        = map(string)
   default     = {}
 }

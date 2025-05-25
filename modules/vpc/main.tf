@@ -1,36 +1,58 @@
 # ------------------------------
 # viberoll-infra/modules/vpc/main.tf
 # ------------------------------
+
 resource "aws_vpc" "main" {
   cidr_block = var.cidr_block
+
   tags = {
-    Name = "${var.project_name}-vpc"
+    Name        = "${var.project_name}-vpc"
+    Project     = var.project_name
+    Environment = "ephemeral"
+    Expire      = "true"
   }
 }
 
 resource "aws_subnet" "public" {
   for_each = toset(var.azs)
+
   vpc_id                  = aws_vpc.main.id
   cidr_block              = cidrsubnet(var.cidr_block, 8, index(var.azs, each.value))
   map_public_ip_on_launch = true
   availability_zone       = each.value
+
   tags = {
-    Name = "${var.project_name}-public-${each.value}"
+    Name        = "${var.project_name}-public-${each.value}"
+    Project     = var.project_name
+    Environment = "ephemeral"
+    Expire      = "true"
   }
 }
 
 resource "aws_subnet" "private" {
   for_each = toset(var.azs)
+
   vpc_id            = aws_vpc.main.id
   cidr_block        = cidrsubnet(var.cidr_block, 8, index(var.azs, each.value) + 10)
   availability_zone = each.value
+
   tags = {
-    Name = "${var.project_name}-private-${each.value}"
+    Name        = "${var.project_name}-private-${each.value}"
+    Project     = var.project_name
+    Environment = "ephemeral"
+    Expire      = "true"
   }
 }
 
 resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.main.id
+
+  tags = {
+    Name        = "${var.project_name}-igw"
+    Project     = var.project_name
+    Environment = "ephemeral"
+    Expire      = "true"
+  }
 }
 
 resource "aws_route_table" "public" {
@@ -39,6 +61,13 @@ resource "aws_route_table" "public" {
   route {
     cidr_block = "0.0.0.0/0"
     gateway_id = aws_internet_gateway.igw.id
+  }
+
+  tags = {
+    Name        = "${var.project_name}-public-rt"
+    Project     = var.project_name
+    Environment = "ephemeral"
+    Expire      = "true"
   }
 }
 
@@ -65,6 +94,13 @@ resource "aws_security_group" "alb" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
+
+  tags = {
+    Name        = "${var.project_name}-alb-sg"
+    Project     = var.project_name
+    Environment = "ephemeral"
+    Expire      = "true"
+  }
 }
 
 resource "aws_security_group" "ecs" {
@@ -83,6 +119,13 @@ resource "aws_security_group" "ecs" {
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name        = "${var.project_name}-ecs-sg"
+    Project     = var.project_name
+    Environment = "ephemeral"
+    Expire      = "true"
   }
 }
 

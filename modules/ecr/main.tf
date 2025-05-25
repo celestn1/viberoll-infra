@@ -14,7 +14,13 @@ resource "aws_ecr_repository" "repo" {
   }
 
   tags = {
-    Project = var.project_name
+    Project     = var.project_name
+    Environment = "ephemeral"
+    Expire      = "true"
+  }
+
+  lifecycle {
+    prevent_destroy = false # Allow easy teardown after testing
   }
 }
 

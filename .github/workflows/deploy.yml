@@ -52,26 +52,7 @@ jobs:
             -var="db_name=${{ secrets.TF_DB_NAME }}" \
             -var="db_username=${{ secrets.TF_DB_USERNAME }}" \
             -var="db_password=${{ secrets.TF_DB_PASSWORD }}" \
-            -var='secrets_map={
-              NODE_ENV="${{ secrets.TF_NODE_ENV }}",
-              HOST="${{ secrets.TF_HOST }}",
-              PORT="${{ secrets.TF_PORT }}",
-              DATABASE_URL="${{ secrets.TF_DATABASE_URL }}",
-              REDIS_URL="${{ secrets.TF_REDIS_URL }}",
-              JWT_SECRET="${{ secrets.TF_JWT_SECRET }}",
-              JWT_REFRESH_SECRET="${{ secrets.TF_JWT_REFRESH_SECRET }}",
-              SALT_ROUNDS="${{ secrets.TF_SALT_ROUNDS }}",
-              JWT_ACCESS_TOKEN_EXPIRATION="${{ secrets.TF_JWT_ACCESS_TOKEN_EXPIRATION }}",
-              JWT_REFRESH_TOKEN_EXPIRATION="${{ secrets.TF_JWT_REFRESH_TOKEN_EXPIRATION }}",
-              RPC_URL="${{ secrets.TF_RPC_URL }}",
-              WALLET_PRIVATE_KEY="${{ secrets.TF_WALLET_PRIVATE_KEY }}",
-              NFT_CONTRACT_ADDRESS="${{ secrets.TF_NFT_CONTRACT_ADDRESS }}",
-              OPENAI_API_ENDPOINT="${{ secrets.TF_OPENAI_API_ENDPOINT }}",
-              OPENAI_API_KEY="${{ secrets.TF_OPENAI_API_KEY }}",
-              ADMIN_EMAIL="${{ secrets.TF_ADMIN_EMAIL }}",
-              ADMIN_PASSWORD="${{ secrets.TF_ADMIN_PASSWORD }}",
-              ADMIN_USERNAME="${{ secrets.TF_ADMIN_USERNAME }}"
-            }' \
+            -var='secrets_map=${{ secrets.TF_SECRETS_MAP }}' \
             -out=tfplan
 
       - name: Terraform Apply

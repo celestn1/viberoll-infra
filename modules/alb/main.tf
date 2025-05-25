@@ -9,7 +9,9 @@ resource "aws_lb" "alb" {
   subnets            = var.public_subnets
 
   tags = {
-    Project = var.project_name
+    Project     = var.project_name
+    Environment = "ephemeral"
+    Expire      = "true"
   }
 }
 
@@ -30,7 +32,9 @@ resource "aws_lb_target_group" "tg" {
   }
 
   tags = {
-    Project = var.project_name
+    Project     = var.project_name
+    Environment = "ephemeral"
+    Expire      = "true"
   }
 }
 
