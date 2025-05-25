@@ -43,6 +43,7 @@ jobs:
 
       - name: Terraform Plan
         run: |
+          export TF_LOG=DEBUG
           terraform plan \
             -var="project_name=${{ secrets.TF_PROJECT_NAME }}" \
             -var="vpc_cidr=${{ secrets.TF_VPC_CIDR }}" \
