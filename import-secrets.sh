@@ -22,9 +22,18 @@ for SECRET_NAME in $SECRETS; do
   KEY_NAME="${SECRET_NAME#${PROJECT_NAME}-}"
   echo "➡️ Importing: $SECRET_NAME as key [$KEY_NAME]..."
 
-  timeout 30 terraform import "module.secrets.aws_secretsmanager_secret.secrets[\"${KEY_NAME}\"]" "$SECRET_NAME" \
-    && echo "✅ Imported: $KEY_NAME" \
-    || echo "⚠️ Failed or already imported: $KEY_NAME"
+  n=0
+  until terraform import "module.secrets.aws_secretsmanager_secret.secrets[\"${KEY_NAME}\"]" "$SECRET_NAME"; do
+    n=$((n + 1))
+    if [[ $n -ge 5 ]]; then
+      echo "❌ Failed after $n attempts: $KEY_NAME"
+      break
+    fi
+    echo "⏳ Lock held. Retrying ($n)..."
+    sleep 5
+  done
+
+  echo "✅ Finished attempt for: $KEY_NAME"
 done
 
 echo -e "\n🎉 Finished attempting to import all secrets.\n"
