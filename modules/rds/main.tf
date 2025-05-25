@@ -60,7 +60,7 @@ resource "aws_db_instance" "postgres" {
   skip_final_snapshot     = true                           # ✅ Avoids cost when deleting
   publicly_accessible     = false                          # ✅ Private only
   multi_az                = false                          # ✅ Avoid cross-AZ cost
-  storage_encrypted       = true                           # ✅ Always recommended
+  storage_encrypted       = true                           # Always recommended
 
   tags = {
     Project     = var.project_name
