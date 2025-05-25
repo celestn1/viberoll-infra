@@ -34,18 +34,18 @@ jobs:
 
       - name: Restore AWS Secrets (if scheduled for deletion)
         run: |
-            echo "🔄 Restoring secrets scheduled for deletion..."
-            aws secretsmanager list-secrets \
+          echo "🔄 Restoring secrets scheduled for deletion..."
+          aws secretsmanager list-secrets \
             --region eu-west-2 \
             --include-planned-deletion \
             --query 'SecretList[].Name' \
             --output text \
-            | tr '\t' '\n' \
-            | while read name; do
-                echo "🔁 Restoring $name"
-                aws secretsmanager restore-secret --region eu-west-2 --secret-id "$name" || echo "⚠️ Could not restore $name"
+          | tr '\t' '\n' \
+          | while read name; do
+              echo "🔁 Restoring $name"
+              aws secretsmanager restore-secret --region eu-west-2 --secret-id "$name" || echo "⚠️ Could not restore $name"
             done
-          
+
       - name: Terraform Init
         run: terraform init
 
