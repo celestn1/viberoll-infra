@@ -20,6 +20,7 @@ resource "aws_lb_target_group" "tg" {
   port     = 4001
   protocol = "HTTP"
   vpc_id   = var.vpc_id
+  target_type = "ip"  # Required for Fargate (awsvpc)
 
   health_check {
     path                = "/"

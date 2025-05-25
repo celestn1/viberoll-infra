@@ -21,6 +21,7 @@ resource "aws_ecr_repository" "repo" {
 
   lifecycle {
     prevent_destroy = false # Allow easy teardown after testing
+    ignore_changes  = [name]
   }
 }
 
