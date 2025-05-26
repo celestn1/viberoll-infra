@@ -3,14 +3,15 @@
 # ------------------------------
 
 resource "aws_secretsmanager_secret" "secrets" {
-  # already filtering out empty values
+  # filter out any empty values, using static keys
   for_each = {
     for key, value in var.secrets_map :
-    "${var.project_name}-${key}" => value
-    if length(trim(value, " ")) > 0
+    key => value
+    if length(trim(value)) > 0
   }
 
-  name        = each.key
+  # construct the AWS secret name at apply-time
+  name        = "${var.project_name}-${each.key}"
   description = "Managed secret ${each.key} for ${var.environment}"
 
   lifecycle {
@@ -20,10 +21,9 @@ resource "aws_secretsmanager_secret" "secrets" {
 }
 
 resource "aws_secretsmanager_secret_version" "secrets_version" {
-  # only iterate over actual secrets
-  for_each = aws_secretsmanager_secret.secrets
-
-  secret_id     = each.value.id
-  secret_string = var.secrets_map[replace(each.key, "${var.project_name}-", "")]
+  # only iterate over the secrets you actually created above
+  for_each       = aws_secretsmanager_secret.secrets
+  secret_id      = each.value.id
+  secret_string  = each.value
   version_stages = ["AWSCURRENT"]
 }
