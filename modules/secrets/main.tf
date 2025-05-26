@@ -3,10 +3,8 @@
 # ------------------------------
 
 resource "aws_secretsmanager_secret" "secrets" {
-  # iterate over all entries in var.secrets_map (all are non-empty by var validation)
   for_each = var.secrets_map
 
-  # construct the actual AWS Secret name
   name        = "${var.project_name}-${each.key}"
   description = "Managed secret ${each.key} for ${var.environment}"
 
@@ -17,9 +15,15 @@ resource "aws_secretsmanager_secret" "secrets" {
 }
 
 resource "aws_secretsmanager_secret_version" "secrets_version" {
-  # now iterate exactly over the secrets you created above
-  for_each       = aws_secretsmanager_secret.secrets
-  secret_id      = each.value.id
-  secret_string  = each.value
+  for_each = aws_secretsmanager_secret.secrets
+
+  secret_id = each.value.id
+
+  # fallback to a default string if the value is not valid
+  secret_string = try(
+    length(trim(var.secrets_map[each.key], " ")) > 0 ? var.secrets_map[each.key] : "REDACTED",
+    "REDACTED"
+  )
+
   version_stages = ["AWSCURRENT"]
 }
