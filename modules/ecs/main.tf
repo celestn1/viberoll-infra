@@ -44,7 +44,33 @@ resource "aws_iam_role_policy_attachment" "exec_policy" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
-# IAM Role for task-specific app logic (optional)
+# Additional inline policy to allow access to secrets
+resource "aws_iam_policy" "secrets_access" {
+  name = "${var.project_name}-ecs-secrets-access"
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Action = [
+          "secretsmanager:GetSecretValue",
+          "secretsmanager:DescribeSecret"
+        ],
+        Resource = "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:${var.project_name}-*"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "attach_secrets_policy" {
+  role       = aws_iam_role.execution_role.name
+  policy_arn = aws_iam_policy.secrets_access.arn
+}
+
+data "aws_caller_identity" "current" {}
+
+# IAM Role for application-level permissions
 resource "aws_iam_role" "task_role" {
   name = "${var.project_name}-ecs-task-role"
 
@@ -77,33 +103,33 @@ resource "aws_ecs_task_definition" "this" {
   execution_role_arn       = aws_iam_role.execution_role.arn
   task_role_arn            = aws_iam_role.task_role.arn
 
-container_definitions = jsonencode([
-  {
-    name      = "${var.project_name}-app"
-    image     = var.container_image
-    essential = true
-    portMappings = [
-      {
-        containerPort = 4001
-        hostPort      = 4001
-      }
-    ]
-    logConfiguration = {
-      logDriver = "awslogs"
-      options = {
-        awslogs-group         = "/ecs/${var.project_name}"
-        awslogs-region        = var.aws_region
-        awslogs-stream-prefix = var.project_name
-      }
+  container_definitions = jsonencode([
+    {
+      name      = "${var.project_name}-app",
+      image     = var.container_image,
+      essential = true,
+      portMappings = [
+        {
+          containerPort = 4001,
+          hostPort      = 4001
+        }
+      ],
+      logConfiguration = {
+        logDriver = "awslogs",
+        options = {
+          awslogs-group         = "/ecs/${var.project_name}",
+          awslogs-region        = var.aws_region,
+          awslogs-stream-prefix = var.project_name
+        }
+      },
+      secrets = [
+        for key, arn in var.secret_arns : {
+          name      = key,
+          valueFrom = arn
+        }
+      ]
     }
-    secrets = [
-      for key, arn in var.secret_arns : {
-        name      = key
-        valueFrom = arn
-      }
-    ]
-  }
-])
+  ])
 
   tags = {
     Project     = var.project_name
@@ -129,18 +155,7 @@ resource "aws_ecs_service" "this" {
     assign_public_ip = false
   }
 
-  # Optional: switch to capacity_provider_strategy if desired
   launch_type = "FARGATE"
-
-  # Optional: replace above with this block to use both FARGATE and FARGATE_SPOT
-  # capacity_provider_strategy {
-  #   capacity_provider = "FARGATE"
-  #   weight            = 1
-  # }
-  # capacity_provider_strategy {
-  #   capacity_provider = "FARGATE_SPOT"
-  #   weight            = 1
-  # }
 
   load_balancer {
     target_group_arn = var.target_group_arn
@@ -149,8 +164,7 @@ resource "aws_ecs_service" "this" {
   }
 
   health_check_grace_period_seconds = 60
-
-  depends_on = [var.alb_listener_arn]
+  depends_on                        = [var.alb_listener_arn]
 
   tags = {
     Project     = var.project_name
