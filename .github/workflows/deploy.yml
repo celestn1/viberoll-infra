@@ -100,7 +100,8 @@ jobs:
           fi
 
       - name: Terraform Plan
-        run: terraform plan -input=false -out=tfplan \
+        run: |
+          terraform plan -input=false -out=tfplan \
           -var-file="secrets.auto.tfvars.json" \
           -var="project_name=${{ secrets.TF_PROJECT_NAME }}" \
           -var="ecr_repo_name=${{ secrets.TF_ECR_REPO_NAME }}" \
