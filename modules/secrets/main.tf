@@ -7,7 +7,7 @@ resource "aws_secretsmanager_secret" "secrets" {
   for_each = {
     for key, value in var.secrets_map :
     key => value
-    if length(trim(value)) > 0
+    if length(trim(value, " ")) > 0
   }
 
   # construct the AWS secret name at apply-time
