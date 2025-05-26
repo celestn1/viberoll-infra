@@ -78,8 +78,6 @@ jobs:
               "NODE_ENV": "${{ secrets.TF_NODE_ENV }}",
               "HOST": "${{ secrets.TF_HOST }}",
               "PORT": "${{ secrets.TF_PORT }}",
-              "REDIS_URL": "${{ secrets.TF_REDIS_URL }}",
-              "DATABASE_URL": "${{ secrets.TF_DATABASE_URL }}",
               "JWT_SECRET": "${{ secrets.TF_JWT_SECRET }}",
               "JWT_REFRESH_SECRET": "${{ secrets.TF_JWT_REFRESH_SECRET }}",
               "SALT_ROUNDS": "${{ secrets.TF_SALT_ROUNDS }}",
