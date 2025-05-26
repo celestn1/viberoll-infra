@@ -23,10 +23,12 @@ resource "aws_subnet" "public" {
   availability_zone       = each.value
 
   tags = {
-    Name        = "${var.project_name}-public-${each.value}"
-    Project     = var.project_name
-    Environment = "ephemeral"
-    Expire      = "true"
+    Name                                 = "${var.project_name}-public-${each.value}"
+    Project                              = var.project_name
+    Environment                          = "ephemeral"
+    Expire                               = "true"
+    "kubernetes.io/role/elb"             = "1"
+    "kubernetes.io/cluster/${var.project_name}" = "owned"
   }
 }
 
@@ -39,10 +41,12 @@ resource "aws_subnet" "private" {
   availability_zone = each.value
 
   tags = {
-    Name        = "${var.project_name}-private-${each.value}"
-    Project     = var.project_name
-    Environment = "ephemeral"
-    Expire      = "true"
+    Name                                       = "${var.project_name}-private-${each.value}"
+    Project                                    = var.project_name
+    Environment                                = "ephemeral"
+    Expire                                     = "true"
+    "kubernetes.io/role/internal-elb"          = "1"
+    "kubernetes.io/cluster/${var.project_name}" = "owned"
   }
 }
 
@@ -67,10 +71,10 @@ resource "aws_eip" "nat" {
   }
 }
 
-# NAT Gateway
+# NAT Gateway in the first public subnet
 resource "aws_nat_gateway" "nat" {
   allocation_id = aws_eip.nat.id
-  subnet_id     = values(aws_subnet.public)[0].id # use first public subnet
+  subnet_id     = values(aws_subnet.public)[0].id
 
   tags = {
     Name = "${var.project_name}-nat-gw"
@@ -79,7 +83,7 @@ resource "aws_nat_gateway" "nat" {
   depends_on = [aws_internet_gateway.igw]
 }
 
-# Route Table: Public
+# Public Route Table
 resource "aws_route_table" "public" {
   vpc_id = aws_vpc.main.id
 
@@ -103,7 +107,7 @@ resource "aws_route_table_association" "public" {
   route_table_id = aws_route_table.public.id
 }
 
-# Route Table: Private (with NAT)
+# Private Route Table with NAT
 resource "aws_route_table" "private" {
   vpc_id = aws_vpc.main.id
 
@@ -179,37 +183,4 @@ resource "aws_security_group" "ecs" {
     Environment = "ephemeral"
     Expire      = "true"
   }
-}
-
-# Outputs
-output "vpc_id" {
-  value = aws_vpc.main.id
-}
-
-output "public_subnets" {
-  value = [for subnet in aws_subnet.public : subnet.id]
-}
-
-output "private_subnets" {
-  value = [for subnet in aws_subnet.private : subnet.id]
-}
-
-output "alb_sg_id" {
-  value = aws_security_group.alb.id
-}
-
-output "ecs_sg_id" {
-  value = aws_security_group.ecs.id
-}
-
-variable "project_name" {
-  type = string
-}
-
-variable "cidr_block" {
-  type = string
-}
-
-variable "azs" {
-  type = list(string)
 }

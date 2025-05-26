@@ -1,7 +1,6 @@
 # ------------------------------
 # viberoll-infra/modules/waf/main.tf
 # ------------------------------
-
 resource "aws_wafv2_web_acl" "waf" {
   name        = "${var.project_name}-waf"
   description = "WAF for ALB"
@@ -18,7 +17,7 @@ resource "aws_wafv2_web_acl" "waf" {
   }
 
   rule {
-    name     = "AWS-AWSManagedRulesCommonRuleSet"
+    name     = "AWSManagedRulesCommonRuleSet"
     priority = 1
 
     override_action {
@@ -49,16 +48,4 @@ resource "aws_wafv2_web_acl" "waf" {
 resource "aws_wafv2_web_acl_association" "alb_assoc" {
   resource_arn = var.alb_arn
   web_acl_arn  = aws_wafv2_web_acl.waf.arn
-}
-
-output "waf_arn" {
-  value = aws_wafv2_web_acl.waf.arn
-}
-
-variable "alb_arn" {
-  type = string
-}
-
-variable "project_name" {
-  type = string
 }

@@ -25,7 +25,7 @@ resource "aws_security_group" "rds" {
     from_port   = 5432
     to_port     = 5432
     protocol    = "tcp"
-    cidr_blocks = ["10.0.0.0/16"] # VPC-local traffic only
+    cidr_blocks = ["10.0.0.0/16"]
   }
 
   egress {
@@ -50,17 +50,17 @@ resource "aws_db_instance" "postgres" {
   identifier              = "${var.project_name}-postgres"
   engine                  = "postgres"
   engine_version          = null
-  instance_class          = "db.t3.micro"                  # ✅ Free Tier eligible
-  allocated_storage       = 20                             # ✅ Free Tier includes up to 20 GB
+  instance_class          = "db.t3.micro"
+  allocated_storage       = 20
   db_name                 = var.db_name
   username                = var.username
   password                = var.password
   db_subnet_group_name    = aws_db_subnet_group.default.name
   vpc_security_group_ids  = [aws_security_group.rds.id]
-  skip_final_snapshot     = true                           # ✅ Avoids cost when deleting
-  publicly_accessible     = false                          # ✅ Private only
-  multi_az                = false                          # ✅ Avoid cross-AZ cost
-  storage_encrypted       = true                           # Always recommended
+  skip_final_snapshot     = true
+  publicly_accessible     = false
+  multi_az                = false
+  storage_encrypted       = true
 
   tags = {
     Project     = var.project_name
@@ -72,33 +72,4 @@ resource "aws_db_instance" "postgres" {
     prevent_destroy = false
     ignore_changes  = [parameter_group_name]
   }
-}
-
-output "rds_endpoint" {
-  value = aws_db_instance.postgres.endpoint
-}
-
-variable "db_name" {
-  type = string
-}
-
-variable "username" {
-  type = string
-}
-
-variable "password" {
-  type      = string
-  sensitive = true
-}
-
-variable "subnet_ids" {
-  type = list(string)
-}
-
-variable "vpc_id" {
-  type = string
-}
-
-variable "project_name" {
-  type = string
 }

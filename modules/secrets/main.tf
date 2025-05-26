@@ -2,22 +2,6 @@
 # viberoll-infra/modules/secrets/main.tf
 # ------------------------------
 
-variable "secrets_map" {
-  type        = map(string)
-  description = "Map of secret key-value pairs to be stored in AWS Secrets Manager"
-}
-
-variable "project_name" {
-  type        = string
-  description = "Project name used as a prefix for secrets"
-}
-
-variable "tags" {
-  type        = map(string)
-  description = "Common tags to apply to all secrets"
-  default     = {}
-}
-
 resource "aws_secretsmanager_secret" "secrets" {
   for_each = var.secrets_map
 
@@ -29,7 +13,7 @@ resource "aws_secretsmanager_secret" "secrets" {
   })
 
   lifecycle {
-    prevent_destroy = true
+    prevent_destroy = false
     ignore_changes  = [tags_all]
   }
 }
@@ -42,12 +26,4 @@ resource "aws_secretsmanager_secret_version" "secrets_version" {
 
   secret_id     = aws_secretsmanager_secret.secrets[each.key].id
   secret_string = each.value
-}
-
-output "secret_arns" {
-  description = "Map of secret keys to their ARNs"
-  value = {
-    for key, secret in aws_secretsmanager_secret.secrets :
-    key => secret.arn
-  }
 }
