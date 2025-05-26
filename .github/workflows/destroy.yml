@@ -106,12 +106,11 @@ jobs:
         run: terraform show -no-color tfplan
 
       - name: Terraform Destroy
-        run: |
-          terraform apply -auto-approve tfplan
+        run: terraform apply -auto-approve tfplan
 
       - name: 💥 Force Delete AWS Secrets
         run: |
           echo "🔐 Cleaning up all secrets related to ${{ secrets.TF_PROJECT_NAME }} ..."
-          aws secretsmanager list-secrets --query 'SecretList[*].Name' --output text | tr '\t' '\n' | \
+          aws secretsmanager list-secrets --include-planned-deletion --query 'SecretList[*].Name' --output text | tr '\t' '\n' | \
           grep "${{ secrets.TF_PROJECT_NAME }}" | \
           awk '{print "aws secretsmanager delete-secret --secret-id "$1" --force-delete-without-recovery"}' | bash
