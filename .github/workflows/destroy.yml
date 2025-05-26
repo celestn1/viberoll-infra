@@ -14,6 +14,31 @@ jobs:
 
     env:
       AWS_REGION: eu-west-2
+      TF_PROJECT_NAME:                       ${{ secrets.TF_PROJECT_NAME }}
+      TF_ECR_REPO_NAME:                      ${{ secrets.TF_ECR_REPO_NAME }}
+      TF_CONTAINER_IMAGE:                    ${{ secrets.TF_CONTAINER_IMAGE }}
+      TF_DB_USERNAME:                        ${{ secrets.TF_DB_USERNAME }}
+      TF_DB_NAME:                            ${{ secrets.TF_DB_NAME }}
+      TF_DB_PASSWORD:                        ${{ secrets.TF_DB_PASSWORD }}
+      TF_VPC_CIDR:                           ${{ secrets.TF_VPC_CIDR }}
+      TF_AZ1:                                ${{ secrets.TF_AZ1 }}
+      TF_AZ2:                                ${{ secrets.TF_AZ2 }}
+      TF_HOST:                               ${{ secrets.TF_HOST }}
+      TF_PORT:                               ${{ secrets.TF_PORT }}
+      TF_NODE_ENV:                           ${{ secrets.TF_NODE_ENV }}
+      TF_SALT_ROUNDS:                        ${{ secrets.TF_SALT_ROUNDS }}
+      TF_RPC_URL:                            ${{ secrets.TF_RPC_URL }}
+      TF_WALLET_PRIVATE_KEY:                 ${{ secrets.TF_WALLET_PRIVATE_KEY }}
+      TF_NFT_CONTRACT_ADDRESS:               ${{ secrets.TF_NFT_CONTRACT_ADDRESS }}
+      TF_OPENAI_API_ENDPOINT:                ${{ secrets.TF_OPENAI_API_ENDPOINT }}
+      TF_OPENAI_API_KEY:                     ${{ secrets.TF_OPENAI_API_KEY }}
+      TF_JWT_SECRET:                         ${{ secrets.TF_JWT_SECRET }}
+      TF_JWT_REFRESH_SECRET:                 ${{ secrets.TF_JWT_REFRESH_SECRET }}
+      TF_JWT_ACCESS_TOKEN_EXPIRATION:        ${{ secrets.TF_JWT_ACCESS_TOKEN_EXPIRATION }}
+      TF_JWT_REFRESH_TOKEN_EXPIRATION:       ${{ secrets.TF_JWT_REFRESH_TOKEN_EXPIRATION }}
+      TF_ADMIN_EMAIL:                        ${{ secrets.TF_ADMIN_EMAIL }}
+      TF_ADMIN_PASSWORD:                     ${{ secrets.TF_ADMIN_PASSWORD }}
+      TF_ADMIN_USERNAME:                     ${{ secrets.TF_ADMIN_USERNAME }}
 
     steps:
       - name: Checkout Repository
@@ -22,9 +47,9 @@ jobs:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
+          aws-region:            ${{ env.AWS_REGION }}
 
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v3
@@ -40,65 +65,38 @@ jobs:
       - name: Terraform Validate
         run: terraform validate
 
-      - name: Debug Required Secrets
-        run: |
-          echo "🔍 Verifying required secrets..."
-          REQUIRED_SECRETS=(
-            "TF_JWT_SECRET"
-            "TF_JWT_REFRESH_SECRET"
-            "TF_DB_PASSWORD"
-          )
-          for key in "${REQUIRED_SECRETS[@]}"; do
-            if [ -z "${!key}" ]; then
-              echo "❌ Missing secret: $key"
-              exit 1
-            else
-              echo "✅ $key is set"
-            fi
-          done
-        env:
-          TF_JWT_SECRET: ${{ secrets.TF_JWT_SECRET }}
-          TF_JWT_REFRESH_SECRET: ${{ secrets.TF_JWT_REFRESH_SECRET }}
-          TF_DB_PASSWORD: ${{ secrets.TF_DB_PASSWORD }}
-
       - name: Terraform Plan (Destroy)
         run: |
-          terraform plan -destroy \
-            -var="project_name=${{ secrets.TF_PROJECT_NAME }}" \
-            -var="vpc_cidr=${{ secrets.TF_VPC_CIDR }}" \
-            -var='azs=["${{ secrets.TF_AZ1 }}","${{ secrets.TF_AZ2 }}"]' \
-            -var="ecr_repo_name=${{ secrets.TF_ECR_REPO_NAME }}" \
-            -var="container_image=${{ secrets.TF_CONTAINER_IMAGE }}" \
-            -var="db_name=${{ secrets.TF_DB_NAME }}" \
-            -var="db_username=${{ secrets.TF_DB_USERNAME }}" \
-            -var="db_password=${{ secrets.TF_DB_PASSWORD }}" \
-            -var="jwt_secret=${{ secrets.TF_JWT_SECRET }}" \
-            -var="jwt_refresh_secret=${{ secrets.TF_JWT_REFRESH_SECRET }}" \
-            -var="wallet_private_key=${{ secrets.TF_WALLET_PRIVATE_KEY }}" \
-            -var="nft_contract_address=${{ secrets.TF_NFT_CONTRACT_ADDRESS }}" \
-            -var="openai_api_key=${{ secrets.TF_OPENAI_API_KEY }}" \
-            -var="admin_email=${{ secrets.TF_ADMIN_EMAIL }}" \
-            -var="admin_password=${{ secrets.TF_ADMIN_PASSWORD }}" \
-            -var="admin_username=${{ secrets.TF_ADMIN_USERNAME }}" \
+          terraform plan -destroy -input=false \
+            -var="project_name=${TF_PROJECT_NAME}" \
+            -var="ecr_repo_name=${TF_ECR_REPO_NAME}" \
+            -var="container_image=${TF_CONTAINER_IMAGE}" \
+            -var="db_name=${TF_DB_NAME}" \
+            -var="db_username=${TF_DB_USERNAME}" \
+            -var="db_password=${TF_DB_PASSWORD}" \
+            -var="jwt_secret=${TF_JWT_SECRET}" \
+            -var="jwt_refresh_secret=${TF_JWT_REFRESH_SECRET}" \
+            -var="admin_password=${TF_ADMIN_PASSWORD}" \
+            -var="vpc_cidr=${TF_VPC_CIDR}" \
+            -var="environment=${TF_NODE_ENV}" \
+            -var='azs=["${TF_AZ1}","${TF_AZ2}"]' \
             -var='secrets_map={
-              NODE_ENV="${{ secrets.TF_NODE_ENV }}",
-              HOST="${{ secrets.TF_HOST }}",
-              PORT="${{ secrets.TF_PORT }}",
-              REDIS_URL="${{ secrets.TF_REDIS_URL }}",
-              DATABASE_URL="${{ secrets.TF_DATABASE_URL }}",
-              JWT_SECRET="${{ secrets.TF_JWT_SECRET }}",
-              JWT_REFRESH_SECRET="${{ secrets.TF_JWT_REFRESH_SECRET }}",
-              SALT_ROUNDS="${{ secrets.TF_SALT_ROUNDS }}",
-              JWT_ACCESS_TOKEN_EXPIRATION="${{ secrets.TF_JWT_ACCESS_TOKEN_EXPIRATION }}",
-              JWT_REFRESH_TOKEN_EXPIRATION="${{ secrets.TF_JWT_REFRESH_TOKEN_EXPIRATION }}",
-              RPC_URL="${{ secrets.TF_RPC_URL }}",
-              WALLET_PRIVATE_KEY="${{ secrets.TF_WALLET_PRIVATE_KEY }}",
-              NFT_CONTRACT_ADDRESS="${{ secrets.TF_NFT_CONTRACT_ADDRESS }}",
-              OPENAI_API_ENDPOINT="${{ secrets.TF_OPENAI_API_ENDPOINT }}",
-              OPENAI_API_KEY="${{ secrets.TF_OPENAI_API_KEY }}",
-              ADMIN_EMAIL="${{ secrets.TF_ADMIN_EMAIL }}",
-              ADMIN_PASSWORD="${{ secrets.TF_ADMIN_PASSWORD }}",
-              ADMIN_USERNAME="${{ secrets.TF_ADMIN_USERNAME }}"
+              NODE_ENV="${TF_NODE_ENV}",
+              HOST="${TF_HOST}",
+              PORT="${TF_PORT}",
+              JWT_SECRET="${TF_JWT_SECRET}",
+              JWT_REFRESH_SECRET="${TF_JWT_REFRESH_SECRET}",
+              SALT_ROUNDS="${TF_SALT_ROUNDS}",
+              JWT_ACCESS_TOKEN_EXPIRATION="${TF_JWT_ACCESS_TOKEN_EXPIRATION}",
+              JWT_REFRESH_TOKEN_EXPIRATION="${TF_JWT_REFRESH_TOKEN_EXPIRATION}",
+              RPC_URL="${TF_RPC_URL}",
+              WALLET_PRIVATE_KEY="${TF_WALLET_PRIVATE_KEY}",
+              NFT_CONTRACT_ADDRESS="${TF_NFT_CONTRACT_ADDRESS}",
+              OPENAI_API_ENDPOINT="${TF_OPENAI_API_ENDPOINT}",
+              OPENAI_API_KEY="${TF_OPENAI_API_KEY}",
+              ADMIN_EMAIL="${TF_ADMIN_EMAIL}",
+              ADMIN_PASSWORD="${TF_ADMIN_PASSWORD}",
+              ADMIN_USERNAME="${TF_ADMIN_USERNAME}"
             }' \
             -out=tfplan
 
