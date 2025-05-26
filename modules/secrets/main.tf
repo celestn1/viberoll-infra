@@ -33,11 +33,12 @@ resource "aws_secretsmanager_secret_version" "secrets_version" {
 
 resource "null_resource" "verify_aws_current_labels" {
   provisioner "local-exec" {
-    command = join("\n", [
-      "echo 🔍 Verifying AWSCURRENT labels...",
-      for key in keys(var.secrets_map) : 
-      "aws secretsmanager describe-secret --secret-id ${var.project_name}-${key} --region ${var.aws_region} --query 'VersionIdsToStages' --output text | grep AWSCURRENT || echo ❌ Missing AWSCURRENT for ${key}"
-    ])
+    command = join("\n", concat(
+      ["echo 🔍 Verifying AWSCURRENT labels..."],
+      [for key in keys(var.secrets_map) : 
+        "aws secretsmanager describe-secret --secret-id ${var.project_name}-${key} --region ${var.aws_region} --query 'VersionIdsToStages' --output text | grep AWSCURRENT || echo ❌ Missing AWSCURRENT for ${key}"
+      ]
+    ))
   }
 
   depends_on = [aws_secretsmanager_secret_version.secrets_version]

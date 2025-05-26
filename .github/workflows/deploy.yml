@@ -59,10 +59,10 @@ jobs:
             fi
           done
         env:
-          TF_JWT_SECRET: ${{ secrets.TF_JWT_SECRET }}
+          TF_JWT_SECRET:         ${{ secrets.TF_JWT_SECRET }}
           TF_JWT_REFRESH_SECRET: ${{ secrets.TF_JWT_REFRESH_SECRET }}
-          TF_DB_PASSWORD: ${{ secrets.TF_DB_PASSWORD }}
-          TF_ADMIN_PASSWORD: ${{ secrets.TF_ADMIN_PASSWORD }}
+          TF_DB_PASSWORD:        ${{ secrets.TF_DB_PASSWORD }}
+          TF_ADMIN_PASSWORD:     ${{ secrets.TF_ADMIN_PASSWORD }}
 
       - name: Generate secrets.auto.tfvars.json
         run: |
@@ -89,9 +89,15 @@ jobs:
           }
           EOF
 
-      - name: 🔍 Validate secrets.auto.tfvars.json has no empty secrets
+      - name: 🔍 Validate secrets.auto.tfvars.json has no empty values
         run: |
-          MISSING=$(jq -r '.secrets_map | to_entries[] | select(.value == "") | .key' secrets.auto.tfvars.json)
+          MISSING=$(jq -r '
+            .secrets_map
+            | to_entries[]
+            | select(.value == "" or .value == null)
+            | .key
+          ' secrets.auto.tfvars.json)
+
           if [[ -n "$MISSING" ]]; then
             echo "❌ Found empty secrets: $MISSING"
             exit 1
@@ -102,18 +108,18 @@ jobs:
       - name: Terraform Plan
         run: |
           terraform plan -input=false -out=tfplan \
-          -var-file="secrets.auto.tfvars.json" \
-          -var="project_name=${{ secrets.TF_PROJECT_NAME }}" \
-          -var="ecr_repo_name=${{ secrets.TF_ECR_REPO_NAME }}" \
-          -var="container_image=${{ secrets.TF_CONTAINER_IMAGE }}" \
-          -var="db_password=${{ secrets.TF_DB_PASSWORD }}" \
-          -var="db_username=${{ secrets.TF_DB_USERNAME }}" \
-          -var="db_name=${{ secrets.TF_DB_NAME }}" \
-          -var="jwt_secret=${{ secrets.TF_JWT_SECRET }}" \
-          -var="jwt_refresh_secret=${{ secrets.TF_JWT_REFRESH_SECRET }}" \
-          -var="admin_password=${{ secrets.TF_ADMIN_PASSWORD }}" \
-          -var="vpc_cidr=${{ secrets.TF_VPC_CIDR }}" \
-          -var='azs=["${{ secrets.TF_AZ1 }}","${{ secrets.TF_AZ2 }}"]'
+            -var-file="secrets.auto.tfvars.json" \
+            -var="project_name=${{ secrets.TF_PROJECT_NAME }}" \
+            -var="ecr_repo_name=${{ secrets.TF_ECR_REPO_NAME }}" \
+            -var="container_image=${{ secrets.TF_CONTAINER_IMAGE }}" \
+            -var="db_username=${{ secrets.TF_DB_USERNAME }}" \
+            -var="db_password=${{ secrets.TF_DB_PASSWORD }}" \
+            -var="db_name=${{ secrets.TF_DB_NAME }}" \
+            -var="jwt_secret=${{ secrets.TF_JWT_SECRET }}" \
+            -var="jwt_refresh_secret=${{ secrets.TF_JWT_REFRESH_SECRET }}" \
+            -var="admin_password=${{ secrets.TF_ADMIN_PASSWORD }}" \
+            -var="vpc_cidr=${{ secrets.TF_VPC_CIDR }}" \
+            -var='azs=["${{ secrets.TF_AZ1 }}","${{ secrets.TF_AZ2 }}"]'
 
       - name: Terraform Apply
         run: terraform apply -input=false -auto-approve tfplan

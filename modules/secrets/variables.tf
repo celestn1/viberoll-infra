@@ -17,3 +17,9 @@ variable "tags" {
   description = "Common tags to apply to all secrets"
   default     = {}
 }
+
+variable "aws_region" {
+  description = "The AWS region where secrets will be stored"
+  type        = string
+  default     = "eu-west-2"
+}
