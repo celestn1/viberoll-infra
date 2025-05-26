@@ -8,6 +8,11 @@ variable "aws_region" {
   default     = "eu-west-2"
 }
 
+variable "environment" {
+  description = "The environment name (e.g., dev, staging, production)"
+  type        = string
+}
+
 variable "project_name" {
   description = "Project or environment name used for tagging and resource naming"
   type        = string
