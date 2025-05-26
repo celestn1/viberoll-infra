@@ -22,7 +22,7 @@ variable "vpc_cidr" {
 variable "azs" {
   description = "List of availability zones to use"
   type        = list(string)
-  default     = ["eu-west-2a", "eu-west-2b"]
+  default     = ["eu-west-2a", "eu-west-2a"]
 }
 
 variable "ecr_repo_name" {
