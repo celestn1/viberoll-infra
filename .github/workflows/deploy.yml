@@ -160,7 +160,8 @@ jobs:
             -var="jwt_refresh_secret=${TF_JWT_REFRESH_SECRET}" \
             -var="admin_password=${TF_ADMIN_PASSWORD}" \
             -var="vpc_cidr=${TF_VPC_CIDR}" \
-            -var='azs=["${TF_AZ1}","${TF_AZ2}"]'
+            -var="environment=${TF_NODE_ENV}" \
+            -var="azs=[\"${TF_AZ1}\",\"${TF_AZ2}\"]"
 
       - name: Terraform Apply
         run: terraform apply -input=false -auto-approve tfplan
