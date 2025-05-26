@@ -3,9 +3,12 @@
 # ------------------------------
 
 resource "aws_secretsmanager_secret" "secrets" {
-  for_each = var.secrets_map
+  for_each = {
+    for key, value in var.secrets_map :
+    "${var.project_name}-${key}" => value
+  }
 
-  name = "${var.project_name}-${each.key}"
+  name = each.key
 
   tags = merge(var.tags, {
     Expire     = "true"
@@ -21,7 +24,7 @@ resource "aws_secretsmanager_secret" "secrets" {
 resource "aws_secretsmanager_secret_version" "secrets_version" {
   for_each = {
     for key, value in var.secrets_map :
-    key => value if try(trim(value), "") != ""
+    "${var.project_name}-${key}" => value if try(trim(value), "") != ""
   }
 
   secret_id     = aws_secretsmanager_secret.secrets[each.key].id

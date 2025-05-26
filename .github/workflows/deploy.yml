@@ -62,46 +62,43 @@ jobs:
           TF_JWT_REFRESH_SECRET: ${{ secrets.TF_JWT_REFRESH_SECRET }}
           TF_DB_PASSWORD: ${{ secrets.TF_DB_PASSWORD }}
 
-      - name: Terraform Plan
+      - name: Write secrets to auto.tfvars.json
         run: |
-          terraform plan \
-            -var="project_name=${{ secrets.TF_PROJECT_NAME }}" \
-            -var="vpc_cidr=${{ secrets.TF_VPC_CIDR }}" \
-            -var='azs=["${{ secrets.TF_AZ1 }}","${{ secrets.TF_AZ2 }}"]' \
-            -var="ecr_repo_name=${{ secrets.TF_ECR_REPO_NAME }}" \
-            -var="container_image=${{ secrets.TF_CONTAINER_IMAGE }}" \
-            -var="db_name=${{ secrets.TF_DB_NAME }}" \
-            -var="db_username=${{ secrets.TF_DB_USERNAME }}" \
-            -var="db_password=${{ secrets.TF_DB_PASSWORD }}" \
-            -var="jwt_secret=${{ secrets.TF_JWT_SECRET }}" \
-            -var="jwt_refresh_secret=${{ secrets.TF_JWT_REFRESH_SECRET }}" \
-            -var="wallet_private_key=${{ secrets.TF_WALLET_PRIVATE_KEY }}" \
-            -var="nft_contract_address=${{ secrets.TF_NFT_CONTRACT_ADDRESS }}" \
-            -var="openai_api_key=${{ secrets.TF_OPENAI_API_KEY }}" \
-            -var="admin_email=${{ secrets.TF_ADMIN_EMAIL }}" \
-            -var="admin_password=${{ secrets.TF_ADMIN_PASSWORD }}" \
-            -var="admin_username=${{ secrets.TF_ADMIN_USERNAME }}" \
-            -var='secrets_map={
-              NODE_ENV="${{ secrets.TF_NODE_ENV }}",
-              HOST="${{ secrets.TF_HOST }}",
-              PORT="${{ secrets.TF_PORT }}",
-              REDIS_URL="${{ secrets.TF_REDIS_URL }}",
-              DATABASE_URL="${{ secrets.TF_DATABASE_URL }}",
-              JWT_SECRET="${{ secrets.TF_JWT_SECRET }}",
-              JWT_REFRESH_SECRET="${{ secrets.TF_JWT_REFRESH_SECRET }}",
-              SALT_ROUNDS="${{ secrets.TF_SALT_ROUNDS }}",
-              JWT_ACCESS_TOKEN_EXPIRATION="${{ secrets.TF_JWT_ACCESS_TOKEN_EXPIRATION }}",
-              JWT_REFRESH_TOKEN_EXPIRATION="${{ secrets.TF_JWT_REFRESH_TOKEN_EXPIRATION }}",
-              RPC_URL="${{ secrets.TF_RPC_URL }}",
-              WALLET_PRIVATE_KEY="${{ secrets.TF_WALLET_PRIVATE_KEY }}",
-              NFT_CONTRACT_ADDRESS="${{ secrets.TF_NFT_CONTRACT_ADDRESS }}",
-              OPENAI_API_ENDPOINT="${{ secrets.TF_OPENAI_API_ENDPOINT }}",
-              OPENAI_API_KEY="${{ secrets.TF_OPENAI_API_KEY }}",
-              ADMIN_EMAIL="${{ secrets.TF_ADMIN_EMAIL }}",
-              ADMIN_PASSWORD="${{ secrets.TF_ADMIN_PASSWORD }}",
-              ADMIN_USERNAME="${{ secrets.TF_ADMIN_USERNAME }}"
-            }' \
-            -out=tfplan
+          cat > secrets.auto.tfvars.json <<EOF
+          {
+            "project_name": "${{ secrets.TF_PROJECT_NAME }}",
+            "vpc_cidr": "${{ secrets.TF_VPC_CIDR }}",
+            "azs": ["${{ secrets.TF_AZ1 }}", "${{ secrets.TF_AZ2 }}"],
+            "ecr_repo_name": "${{ secrets.TF_ECR_REPO_NAME }}",
+            "container_image": "${{ secrets.TF_CONTAINER_IMAGE }}",
+            "db_name": "${{ secrets.TF_DB_NAME }}",
+            "db_username": "${{ secrets.TF_DB_USERNAME }}",
+            "db_password": "${{ secrets.TF_DB_PASSWORD }}",
+            "secrets_map": {
+              "NODE_ENV": "${{ secrets.TF_NODE_ENV }}",
+              "HOST": "${{ secrets.TF_HOST }}",
+              "PORT": "${{ secrets.TF_PORT }}",
+              "REDIS_URL": "${{ secrets.TF_REDIS_URL }}",
+              "DATABASE_URL": "${{ secrets.TF_DATABASE_URL }}",
+              "JWT_SECRET": "${{ secrets.TF_JWT_SECRET }}",
+              "JWT_REFRESH_SECRET": "${{ secrets.TF_JWT_REFRESH_SECRET }}",
+              "SALT_ROUNDS": "${{ secrets.TF_SALT_ROUNDS }}",
+              "JWT_ACCESS_TOKEN_EXPIRATION": "${{ secrets.TF_JWT_ACCESS_TOKEN_EXPIRATION }}",
+              "JWT_REFRESH_TOKEN_EXPIRATION": "${{ secrets.TF_JWT_REFRESH_TOKEN_EXPIRATION }}",
+              "RPC_URL": "${{ secrets.TF_RPC_URL }}",
+              "WALLET_PRIVATE_KEY": "${{ secrets.TF_WALLET_PRIVATE_KEY }}",
+              "NFT_CONTRACT_ADDRESS": "${{ secrets.TF_NFT_CONTRACT_ADDRESS }}",
+              "OPENAI_API_ENDPOINT": "${{ secrets.TF_OPENAI_API_ENDPOINT }}",
+              "OPENAI_API_KEY": "${{ secrets.TF_OPENAI_API_KEY }}",
+              "ADMIN_EMAIL": "${{ secrets.TF_ADMIN_EMAIL }}",
+              "ADMIN_PASSWORD": "${{ secrets.TF_ADMIN_PASSWORD }}",
+              "ADMIN_USERNAME": "${{ secrets.TF_ADMIN_USERNAME }}"
+            }
+          }
+          EOF
+
+      - name: Terraform Plan
+        run: terraform plan -out=tfplan
 
       - name: Terraform Apply
         run: terraform apply -auto-approve tfplan

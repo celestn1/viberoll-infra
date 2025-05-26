@@ -1,5 +1,5 @@
 #-------------------------
-# viberoll-infra/modules/rds/outputs.tf
+# viberoll-infra/modules/secrets/outputs.tf
 #-------------------------
 
 output "secret_arns" {
