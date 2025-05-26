@@ -13,6 +13,7 @@ resource "aws_vpc" "main" {
   }
 }
 
+# Public Subnets
 resource "aws_subnet" "public" {
   for_each = toset(var.azs)
 
@@ -29,6 +30,7 @@ resource "aws_subnet" "public" {
   }
 }
 
+# Private Subnets
 resource "aws_subnet" "private" {
   for_each = toset(var.azs)
 
@@ -44,6 +46,7 @@ resource "aws_subnet" "private" {
   }
 }
 
+# Internet Gateway
 resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.main.id
 
@@ -55,6 +58,28 @@ resource "aws_internet_gateway" "igw" {
   }
 }
 
+# Elastic IP for NAT Gateway
+resource "aws_eip" "nat" {
+  domain = "vpc"
+
+  tags = {
+    Name = "${var.project_name}-nat-eip"
+  }
+}
+
+# NAT Gateway
+resource "aws_nat_gateway" "nat" {
+  allocation_id = aws_eip.nat.id
+  subnet_id     = values(aws_subnet.public)[0].id # use first public subnet
+
+  tags = {
+    Name = "${var.project_name}-nat-gw"
+  }
+
+  depends_on = [aws_internet_gateway.igw]
+}
+
+# Route Table: Public
 resource "aws_route_table" "public" {
   vpc_id = aws_vpc.main.id
 
@@ -71,12 +96,38 @@ resource "aws_route_table" "public" {
   }
 }
 
+# Associate Public Subnets
 resource "aws_route_table_association" "public" {
   for_each       = aws_subnet.public
   subnet_id      = each.value.id
   route_table_id = aws_route_table.public.id
 }
 
+# Route Table: Private (with NAT)
+resource "aws_route_table" "private" {
+  vpc_id = aws_vpc.main.id
+
+  route {
+    cidr_block     = "0.0.0.0/0"
+    nat_gateway_id = aws_nat_gateway.nat.id
+  }
+
+  tags = {
+    Name        = "${var.project_name}-private-rt"
+    Project     = var.project_name
+    Environment = "ephemeral"
+    Expire      = "true"
+  }
+}
+
+# Associate Private Subnets
+resource "aws_route_table_association" "private" {
+  for_each       = aws_subnet.private
+  subnet_id      = each.value.id
+  route_table_id = aws_route_table.private.id
+}
+
+# Security Group: ALB
 resource "aws_security_group" "alb" {
   vpc_id = aws_vpc.main.id
   name   = "${var.project_name}-alb-sg"
@@ -103,6 +154,7 @@ resource "aws_security_group" "alb" {
   }
 }
 
+# Security Group: ECS
 resource "aws_security_group" "ecs" {
   vpc_id = aws_vpc.main.id
   name   = "${var.project_name}-ecs-sg"
@@ -129,6 +181,7 @@ resource "aws_security_group" "ecs" {
   }
 }
 
+# Outputs
 output "vpc_id" {
   value = aws_vpc.main.id
 }
