@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      AWS_REGION: eu-west-2
+      AWS_REGION:                            eu-west-2
       TF_PROJECT_NAME:                       ${{ secrets.TF_PROJECT_NAME }}
       TF_ECR_REPO_NAME:                      ${{ secrets.TF_ECR_REPO_NAME }}
       TF_CONTAINER_IMAGE:                    ${{ secrets.TF_CONTAINER_IMAGE }}
@@ -65,9 +65,35 @@ jobs:
       - name: Terraform Validate
         run: terraform validate
 
+      - name: Generate secrets.auto.tfvars.json
+        run: |
+          cat > secrets.auto.tfvars.json <<EOF
+          {
+            "secrets_map": {
+              "NODE_ENV": "${TF_NODE_ENV}",
+              "HOST": "${TF_HOST}",
+              "PORT": "${TF_PORT}",
+              "JWT_SECRET": "${TF_JWT_SECRET}",
+              "JWT_REFRESH_SECRET": "${TF_JWT_REFRESH_SECRET}",
+              "SALT_ROUNDS": "${TF_SALT_ROUNDS}",
+              "JWT_ACCESS_TOKEN_EXPIRATION": "${TF_JWT_ACCESS_TOKEN_EXPIRATION}",
+              "JWT_REFRESH_TOKEN_EXPIRATION": "${TF_JWT_REFRESH_TOKEN_EXPIRATION}",
+              "RPC_URL": "${TF_RPC_URL}",
+              "WALLET_PRIVATE_KEY": "${TF_WALLET_PRIVATE_KEY}",
+              "NFT_CONTRACT_ADDRESS": "${TF_NFT_CONTRACT_ADDRESS}",
+              "OPENAI_API_ENDPOINT": "${TF_OPENAI_API_ENDPOINT}",
+              "OPENAI_API_KEY": "${TF_OPENAI_API_KEY}",
+              "ADMIN_EMAIL": "${TF_ADMIN_EMAIL}",
+              "ADMIN_PASSWORD": "${TF_ADMIN_PASSWORD}",
+              "ADMIN_USERNAME": "${TF_ADMIN_USERNAME}"
+            }
+          }
+          EOF
+
       - name: Terraform Plan (Destroy)
         run: |
           terraform plan -destroy -input=false \
+            -var-file="secrets.auto.tfvars.json" \
             -var="project_name=${TF_PROJECT_NAME}" \
             -var="ecr_repo_name=${TF_ECR_REPO_NAME}" \
             -var="container_image=${TF_CONTAINER_IMAGE}" \
@@ -79,25 +105,7 @@ jobs:
             -var="admin_password=${TF_ADMIN_PASSWORD}" \
             -var="vpc_cidr=${TF_VPC_CIDR}" \
             -var="environment=${TF_NODE_ENV}" \
-            -var='azs=["${TF_AZ1}","${TF_AZ2}"]' \
-            -var='secrets_map={
-              NODE_ENV="${TF_NODE_ENV}",
-              HOST="${TF_HOST}",
-              PORT="${TF_PORT}",
-              JWT_SECRET="${TF_JWT_SECRET}",
-              JWT_REFRESH_SECRET="${TF_JWT_REFRESH_SECRET}",
-              SALT_ROUNDS="${TF_SALT_ROUNDS}",
-              JWT_ACCESS_TOKEN_EXPIRATION="${TF_JWT_ACCESS_TOKEN_EXPIRATION}",
-              JWT_REFRESH_TOKEN_EXPIRATION="${TF_JWT_REFRESH_TOKEN_EXPIRATION}",
-              RPC_URL="${TF_RPC_URL}",
-              WALLET_PRIVATE_KEY="${TF_WALLET_PRIVATE_KEY}",
-              NFT_CONTRACT_ADDRESS="${TF_NFT_CONTRACT_ADDRESS}",
-              OPENAI_API_ENDPOINT="${TF_OPENAI_API_ENDPOINT}",
-              OPENAI_API_KEY="${TF_OPENAI_API_KEY}",
-              ADMIN_EMAIL="${TF_ADMIN_EMAIL}",
-              ADMIN_PASSWORD="${TF_ADMIN_PASSWORD}",
-              ADMIN_USERNAME="${TF_ADMIN_USERNAME}"
-            }' \
+            -var="azs=[\"${TF_AZ1}\",\"${TF_AZ2}\"]" \
             -out=tfplan
 
       - name: Show Destroy Plan (Preview)
@@ -109,6 +117,8 @@ jobs:
       - name: 💥 Force Delete AWS Secrets
         run: |
           echo "🔐 Cleaning up all secrets related to ${{ secrets.TF_PROJECT_NAME }} ..."
-          aws secretsmanager list-secrets --include-planned-deletion --query 'SecretList[*].Name' --output text | tr '\t' '\n' | \
-          grep "${{ secrets.TF_PROJECT_NAME }}" | \
-          awk '{print "aws secretsmanager delete-secret --secret-id "$1" --force-delete-without-recovery"}' | bash
+          aws secretsmanager list-secrets --include-planned-deletion \
+            --query 'SecretList[*].Name' --output text | tr '\t' '\n' | \
+            grep "${{ secrets.TF_PROJECT_NAME }}" | \
+            xargs -I {} aws secretsmanager delete-secret \
+              --secret-id {} --force-delete-without-recovery
