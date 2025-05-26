@@ -106,7 +106,19 @@ jobs:
           fi
 
       - name: Terraform Plan
-        run: terraform plan -input=false -out=tfplan -var-file="secrets.auto.tfvars.json"
+        run: |
+          terraform plan -input=false -out=tfplan \
+            -var-file="secrets.auto.tfvars.json" \
+            -var="jwt_secret=${{ secrets.TF_JWT_SECRET }}" \
+            -var="jwt_refresh_secret=${{ secrets.TF_JWT_REFRESH_SECRET }}" \
+            -var="db_password=${{ secrets.TF_DB_PASSWORD }}" \
+            -var="db_username=${{ secrets.TF_DB_USERNAME }}" \
+            -var="db_name=${{ secrets.TF_DB_NAME }}" \
+            -var="project_name=${{ secrets.TF_PROJECT_NAME }}" \
+            -var="vpc_cidr=${{ secrets.TF_VPC_CIDR }}" \
+            -var='azs=["${{ secrets.TF_AZ1 }}","${{ secrets.TF_AZ2 }}"]' \
+            -var="ecr_repo_name=${{ secrets.TF_ECR_REPO_NAME }}" \
+            -var="container_image=${{ secrets.TF_CONTAINER_IMAGE }}"
 
       - name: Terraform Apply
         run: terraform apply -input=false -auto-approve tfplan
