@@ -30,3 +30,23 @@ resource "aws_secretsmanager_secret_version" "secrets_version" {
   secret_id     = aws_secretsmanager_secret.secrets[each.key].id
   secret_string = each.value
 }
+
+resource "null_resource" "verify_aws_current_labels" {
+  provisioner "local-exec" {
+    command = join("\n", [
+      "echo 🔍 Verifying AWSCURRENT labels...",
+      for key, value in var.secrets_map : <<EOT
+if [[ "${try(trim(value), "")}" != "" ]]; then
+  echo "🔎 ${var.project_name}-${key}"
+  aws secretsmanager describe-secret \
+    --secret-id ${var.project_name}-${key} \
+    --region ${var.aws_region} \
+    --query 'VersionIdsToStages' \
+    --output text | grep AWSCURRENT || echo "❌ Missing AWSCURRENT for ${var.project_name}-${key}"
+fi
+EOT
+    ])
+  }
+
+  depends_on = [aws_secretsmanager_secret_version.secrets_version]
+}
