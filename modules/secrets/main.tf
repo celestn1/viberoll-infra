@@ -3,17 +3,15 @@
 # ------------------------------
 
 resource "aws_secretsmanager_secret" "secrets" {
+  # already filtering out empty values
   for_each = {
     for key, value in var.secrets_map :
     "${var.project_name}-${key}" => value
+    if length(trim(value)) > 0
   }
 
-  name = each.key
-
-  tags = merge(var.tags, {
-    Expire     = "true"
-    Destroy_By = "2025-05-25T18:00:00Z"
-  })
+  name        = each.key
+  description = "Managed secret ${each.key} for ${var.environment}"
 
   lifecycle {
     prevent_destroy = false
@@ -22,24 +20,10 @@ resource "aws_secretsmanager_secret" "secrets" {
 }
 
 resource "aws_secretsmanager_secret_version" "secrets_version" {
-  for_each = {
-    for key, value in var.secrets_map :
-    "${var.project_name}-${key}" => value if try(trim(value), "") != ""
-  }
+  # only iterate over actual secrets
+  for_each = aws_secretsmanager_secret.secrets
 
-  secret_id     = aws_secretsmanager_secret.secrets[each.key].id
-  secret_string = each.value
-}
-
-resource "null_resource" "verify_aws_current_labels" {
-  provisioner "local-exec" {
-    command = join("\n", concat(
-      ["echo 🔍 Verifying AWSCURRENT labels..."],
-      [for key in keys(var.secrets_map) : 
-        "aws secretsmanager describe-secret --secret-id ${var.project_name}-${key} --region ${var.aws_region} --query 'VersionIdsToStages' --output text | grep AWSCURRENT || echo ❌ Missing AWSCURRENT for ${key}"
-      ]
-    ))
-  }
-
-  depends_on = [aws_secretsmanager_secret_version.secrets_version]
+  secret_id     = each.value.id
+  secret_string = var.secrets_map[replace(each.key, "${var.project_name}-", "")]
+  version_stages = ["AWSCURRENT"]
 }
