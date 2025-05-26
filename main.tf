@@ -59,8 +59,8 @@ module "ecs" {
 module "rds" {
   source       = "./modules/rds"
   db_name      = var.db_name
-  username     = var.db_username
-  password     = var.db_password
+  db_username  = var.db_username
+  db_password  = var.db_password
   subnet_ids   = module.vpc.private_subnets
   vpc_id       = module.vpc.vpc_id
   project_name = var.project_name
