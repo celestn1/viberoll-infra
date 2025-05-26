@@ -41,15 +41,15 @@ jobs:
       - name: Terraform Validate
         run: terraform validate
 
-      - name: Debug Required Secrets
+      - name: 🔍 Validate required secrets are set
         run: |
-          echo "🔍 Verifying required secrets..."
-          REQUIRED_SECRETS=(
-            "TF_JWT_SECRET"
-            "TF_JWT_REFRESH_SECRET"
-            "TF_DB_PASSWORD"
+          echo "🔍 Checking required secrets..."
+          REQUIRED=(
+            TF_JWT_SECRET
+            TF_JWT_REFRESH_SECRET
+            TF_DB_PASSWORD
           )
-          for key in "${REQUIRED_SECRETS[@]}"; do
+          for key in "${REQUIRED[@]}"; do
             if [ -z "${!key}" ]; then
               echo "❌ Missing secret: $key"
               exit 1
@@ -62,7 +62,7 @@ jobs:
           TF_JWT_REFRESH_SECRET: ${{ secrets.TF_JWT_REFRESH_SECRET }}
           TF_DB_PASSWORD: ${{ secrets.TF_DB_PASSWORD }}
 
-      - name: Write secrets to auto.tfvars.json
+      - name: Generate secrets.auto.tfvars.json
         run: |
           cat > secrets.auto.tfvars.json <<EOF
           {
@@ -97,8 +97,18 @@ jobs:
           }
           EOF
 
+      - name: 🔍 Validate secrets.auto.tfvars.json has no empty secrets
+        run: |
+          MISSING=$(jq -r '.secrets_map | to_entries[] | select(.value == "") | .key' secrets.auto.tfvars.json)
+          if [[ -n "$MISSING" ]]; then
+            echo "❌ Found empty secrets: $MISSING"
+            exit 1
+          else
+            echo "✅ All secrets have values"
+          fi
+
       - name: Terraform Plan
-        run: terraform plan -out=tfplan
+        run: terraform plan -input=false -out=tfplan
 
       - name: Terraform Apply
-        run: terraform apply -auto-approve tfplan
+        run: terraform apply -input=false -auto-approve tfplan
