@@ -106,7 +106,7 @@ jobs:
           fi
 
       - name: Terraform Plan
-        run: terraform plan -input=false -out=tfplan
+        run: terraform plan -input=false -out=tfplan -var-file="secrets.auto.tfvars.json"
 
       - name: Terraform Apply
         run: terraform apply -input=false -auto-approve tfplan
