@@ -1,6 +1,12 @@
 # ------------------------------
 # viberoll-infra/modules/ecs/variables.tf
 # ------------------------------
+
+variable "secret_arns" {
+  type        = map(string)
+  description = "Map of secret names to their ARNs from Secrets Manager"
+}
+
 variable "cluster_name" {
   type = string
 }

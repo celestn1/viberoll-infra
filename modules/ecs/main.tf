@@ -77,27 +77,33 @@ resource "aws_ecs_task_definition" "this" {
   execution_role_arn       = aws_iam_role.execution_role.arn
   task_role_arn            = aws_iam_role.task_role.arn
 
-  container_definitions = jsonencode([
-    {
-      name      = "${var.project_name}-app"
-      image     = var.container_image
-      essential = true
-      portMappings = [
-        {
-          containerPort = 4001
-          hostPort      = 4001
-        }
-      ]
-      logConfiguration = {
-        logDriver = "awslogs"
-        options = {
-          awslogs-group         = "/ecs/${var.project_name}"
-          awslogs-region        = var.aws_region
-          awslogs-stream-prefix = "${var.project_name}"
-        }
+container_definitions = jsonencode([
+  {
+    name      = "${var.project_name}-app"
+    image     = var.container_image
+    essential = true
+    portMappings = [
+      {
+        containerPort = 4001
+        hostPort      = 4001
+      }
+    ]
+    logConfiguration = {
+      logDriver = "awslogs"
+      options = {
+        awslogs-group         = "/ecs/${var.project_name}"
+        awslogs-region        = var.aws_region
+        awslogs-stream-prefix = var.project_name
       }
     }
-  ])
+    secrets = [
+      for key, arn in var.secret_arns : {
+        name      = key
+        valueFrom = arn
+      }
+    ]
+  }
+])
 
   tags = {
     Project     = var.project_name

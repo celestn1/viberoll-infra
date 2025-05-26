@@ -53,6 +53,7 @@ module "ecs" {
   target_group_arn   = module.alb.target_group_arn
   alb_listener_arn   = module.alb.listener_arn
   project_name       = var.project_name
+  secret_arns        = module.secrets.secret_arns
 }
 
 module "rds" {
