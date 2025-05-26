@@ -7,7 +7,7 @@ resource "aws_secretsmanager_secret" "secrets" {
   for_each = {
     for key, value in var.secrets_map :
     "${var.project_name}-${key}" => value
-    if length(trim(value)) > 0
+    if length(trim(value, " ")) > 0
   }
 
   name        = each.key
