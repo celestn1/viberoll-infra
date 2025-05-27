@@ -19,7 +19,7 @@ Infrastructure as Code (IaC) for the **VibeRoll** application — a modern, AI-p
 - **WAF** for web firewall protection
 - **CloudWatch** for logging & metrics
 
-### ⚙️ CI/CD Pipelines
+### CI/CD Pipelines
 - **viberoll-backend** repo builds Docker images on push to `main` and pushes to ECR.
 - On successful image push, it dispatches a `deploy-trigger` to this repo.
 - This repo listens and automatically deploys infra with latest image.
