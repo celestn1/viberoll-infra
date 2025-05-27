@@ -32,7 +32,7 @@ resource "aws_ecr_repository" "repo" {
   }
 
   lifecycle {
-    prevent_destroy       = true  # ✅ Use hardcoded value
+    prevent_destroy       = false  # ✅ Use hardcoded value
     create_before_destroy = false
     ignore_changes        = [name, image_scanning_configuration]
   }

@@ -122,3 +122,11 @@ jobs:
             grep "${{ secrets.TF_PROJECT_NAME }}" | \
             xargs -I {} aws secretsmanager delete-secret \
               --secret-id {} --force-delete-without-recovery
+
+      - name: 💥 Force Delete ECR Repo
+        run: |
+          echo "🔐 Cleaning up ECR repository: ${{ secrets.TF_ECR_REPO_NAME }} ..."
+          aws ecr delete-repository \
+            --repository-name "${{ secrets.TF_ECR_REPO_NAME }}" \
+            --force \
+            --region "$AWS_REGION"
