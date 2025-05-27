@@ -124,15 +124,27 @@ jobs:
             xargs -I {} aws secretsmanager delete-secret \
               --secret-id {} --force-delete-without-recovery
 
-      - name: 💥 Force Delete All ECR Repos Related to Project
+      - name: 💥 List and Delete All ECR Repos Related to Project
         run: |
-          echo "Searching for ECR repos related to: ${{ env.TF_PROJECT_NAME }}"
-          aws ecr describe-repositories --region "$AWS_REGION" \
-            --query "repositories[?contains(repositoryName, \'${{ env.TF_PROJECT_NAME }}\`)].repositoryName" \
-            --output text | tr '\t' '\n' | while read repo; do
+          echo "Searching for ECR repos related to: $TF_PROJECT_NAME"
+          
+          repos=$(aws ecr describe-repositories --region "$AWS_REGION" \
+            --query "repositories[?contains(repositoryName, \`$TF_PROJECT_NAME\`)].repositoryName" \
+            --output text)
+
+          if [ -z "$repos" ]; then
+            echo "✅ No matching ECR repositories found for project: $TF_PROJECT_NAME"
+          else
+            echo "The following repositories will be deleted:"
+            echo "$repos" | tr '\t' '\n'
+            echo
+
+            echo "$repos" | tr '\t' '\n' | while read repo; do
               echo "Deleting ECR repository: $repo"
               aws ecr delete-repository --repository-name "$repo" --force --region "$AWS_REGION"
             done
+          fi
+
 
       - name: Cleanup ECS Services and Task Definitions
         run: |
