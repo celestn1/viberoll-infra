@@ -69,7 +69,7 @@ jobs:
       - name: Terraform Validate
         run: terraform validate
 
-      - name: 🔍 Validate required secrets are set
+      - name: Validate required secrets are set
         run: |
           echo "🔍 Checking required secrets..."
           REQUIRED=(
