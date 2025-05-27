@@ -2,7 +2,7 @@
 # .github/workflows/destroy.yml
 # ------------------------------
 
-name: Destroy AWS Infra
+name: Destroy All Viberoll AWS Resources
 
 on:
   workflow_dispatch:  # Manual trigger only
@@ -116,7 +116,7 @@ jobs:
 
       - name: 💥 Force Delete AWS Secrets
         run: |
-          echo "🔐 Cleaning up all secrets related to ${{ env.TF_PROJECT_NAME }} ..."
+          echo "Cleaning up all secrets related to ${{ env.TF_PROJECT_NAME }} ..."
           aws secretsmanager list-secrets \
             --include-planned-deletion \
             --query 'SecretList[*].Name' --output text | tr '\t' '\n' | \
@@ -124,13 +124,54 @@ jobs:
             xargs -I {} aws secretsmanager delete-secret \
               --secret-id {} --force-delete-without-recovery
 
-      - name: 💥 Force Delete ECR Repo
+      - name: 💥 Force Delete All ECR Repos Related to Project
         run: |
-          echo "🔐 Cleaning up ECR repository: ${{ env.TF_ECR_REPO_NAME }} ..."
-          aws ecr delete-repository \
-            --repository-name "${{ env.TF_ECR_REPO_NAME }}" \
-            --force \
-            --region "${AWS_REGION}"
+          echo "Searching for ECR repos related to: ${{ env.TF_PROJECT_NAME }}"
+          aws ecr describe-repositories --region "$AWS_REGION" \
+            --query "repositories[?contains(repositoryName, '${{ env.TF_PROJECT_NAME }})'].repositoryName" \
+            --output text | tr '\t' '\n' | while read repo; do
+              echo "Deleting ECR repository: $repo"
+              aws ecr delete-repository --repository-name "$repo" --force --region "$AWS_REGION"
+            done
+
+      - name: Cleanup ECS Services and Task Definitions
+        run: |
+          echo "Cleaning ECS services related to: ${TF_PROJECT_NAME}"
+          CLUSTERS=$(aws ecs list-clusters --region $AWS_REGION --query 'clusterArns[*]' --output text)
+
+          for CLUSTER in $CLUSTERS; do
+            echo "Cluster: $CLUSTER"
+            SERVICES=$(aws ecs list-services --cluster $CLUSTER --region $AWS_REGION --query 'serviceArns[*]' --output text)
+
+            for SERVICE in $SERVICES; do
+              if echo "$SERVICE" | grep -q "${TF_PROJECT_NAME}"; then
+                echo "Deleting ECS service: $SERVICE"
+                aws ecs update-service --cluster $CLUSTER --service $SERVICE --desired-count 0 --region $AWS_REGION
+                aws ecs delete-service --cluster $CLUSTER --service $SERVICE --force --region $AWS_REGION
+              fi
+            done
+          done
+
+          echo "Deregistering task definitions..."
+          TASKS=$(aws ecs list-task-definitions --region $AWS_REGION --query 'taskDefinitionArns[*]' --output text)
+
+          for TASK in $TASKS; do
+            if echo "$TASK" | grep -q "${TF_PROJECT_NAME}"; then
+              echo "Deregistering task: $TASK"
+              aws ecs deregister-task-definition --task-definition $TASK --region $AWS_REGION
+            fi
+          done
+
+      
+      - name: Delete ECS Clusters
+        run: |
+          echo "Deleting ECS clusters matching ${TF_PROJECT_NAME}..."
+          aws ecs list-clusters --region $AWS_REGION --query 'clusterArns[*]' --output text | \
+          tr '\t' '\n' | grep "${TF_PROJECT_NAME}" | while read cluster; do
+            echo "Deleting cluster: $cluster"
+            aws ecs delete-cluster --cluster "$cluster" --region $AWS_REGION
+          done
+
 
       - name: ✅ Confirm Teardown Complete
         run: |
