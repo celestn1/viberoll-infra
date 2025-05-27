@@ -2,6 +2,8 @@
 
 Infrastructure as Code (IaC) for the **VibeRoll** application — a modern, AI-powered video sharing platform. This repo provisions all AWS infrastructure components using **Terraform** and handles **CI/CD** via **GitHub Actions**.
 
+![Dashboard Screenshot](./assets/viberoll_architecture_improved.png)
+
 ---
 
 ## What’s Inside?
