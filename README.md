@@ -1,186 +1,140 @@
-viberoll-infra
+# 📦 VibeRoll Infra
 
-Terraform Infrastructure for Viberoll Backend
+Infrastructure as Code (IaC) for the **VibeRoll** application — a modern, AI-powered video sharing platform. This repo provisions all AWS infrastructure components using **Terraform** and handles **CI/CD** via **GitHub Actions**.
 
-This repository contains the Terraform configurations and GitHub Actions workflows necessary to provision, deploy, and manage the infrastructure for the Viberoll backend application on AWS.
+---
 
-Overview
+## 🚀 What’s Inside?
 
-The infrastructure setup includes:
+### 🔧 Infrastructure Managed
+- **VPC** with public/private subnets
+- **ALB** (Application Load Balancer)
+- **ECS Fargate** for containerized app hosting
+- **RDS (PostgreSQL)** for relational storage
+- **ElastiCache (Redis)** for caching
+- **Secrets Manager** for environment secrets
+- **ECR** for Docker image storage
+- **WAF** for web firewall protection
+- **CloudWatch** for logging & metrics
 
-AWS Services: ECS (Fargate), ECR, RDS (PostgreSQL), VPC, Subnets, Security Groups, IAM Roles, Secrets Manager.
+### ⚙️ CI/CD Pipelines
+- **viberoll-backend** repo builds Docker images on push to `main` and pushes to ECR.
+- On successful image push, it dispatches a `deploy-trigger` to this repo.
+- This repo listens and automatically deploys infra with latest image.
 
-CI/CD Pipelines: Automated workflows for building Docker images, pushing to ECR, deploying to ECS, and destroying resources.
+---
 
-Modular Terraform Code: Organized modules for reusability and clarity.
-
-📁 Repository Structure
+## 📁 Repo Structure
 
 viberoll-infra/
-├── backend.tf
-├── destroy.sh
+├── modules/
+│ ├── alb/
+│ ├── cloudwatch/
+│ ├── ecr/
+│ ├── ecs/
+│ ├── elasticache/
+│ ├── rds/
+│ ├── secrets/
+│ ├── vpc/
+│ └── waf/
 ├── main.tf
-├── modules
-│   ├── alb
-│   │   ├── main.tf
-│   │   ├── outputs.tf
-│   │   └── variables.tf
-│   ├── cloudwatch
-│   │   ├── main.tf
-│   │   ├── outputs.tf
-│   │   └── variables.tf
-│   ├── ecr
-│   │   ├── main.tf
-│   │   ├── outputs.tf
-│   │   └── variables.tf
-│   ├── ecs
-│   │   ├── main.tf
-│   │   ├── outputs.tf
-│   │   └── variables.tf
-│   ├── elasticache
-│   │   ├── main.tf
-│   │   ├── outputs.tf
-│   │   └── variables.tf
-│   ├── rds
-│   │   ├── main.tf
-│   │   ├── outputs.tf
-│   │   └── variables.tf
-│   ├── secrets
-│   │   ├── main.tf
-│   │   ├── outputs.tf
-│   │   └── variables.tf
-│   ├── vpc
-│   │   ├── main.tf
-│   │   ├── outputs.tf
-│   │   └── variables.tf
-│   └── waf
-│       ├── main.tf
-│       ├── outputs.tf
-│       └── variables.tf
+├── variables.tf
 ├── outputs.tf
-├── terraform.tfvars
-└── variables.tf
+└── .github/
+└── workflows/
+├── deploy.yml
+└── destroy.yml
 
-27 directories, 78 files
-celestn@CN001:/viberoll-project/viberoll-infra/$
 
 
+---
 
-Prerequisites
+## 🔐 Environment Variables (Secrets)
 
-Terraform: v1.6.6 or later
+All required secrets are stored in **GitHub Actions** > `Settings > Secrets and Variables`.
 
-AWS CLI: Configured with appropriate credentials
+Here are some examples:
 
-GitHub Personal Access Token (PAT): With repo and workflow scopes
+| Name                      | Description                    |
+|---------------------------|--------------------------------|
+| `TF_PROJECT_NAME`         | Project name prefix            |
+| `TF_DB_USERNAME`          | DB user for RDS                |
+| `TF_DB_PASSWORD`          | DB password                    |
+| `TF_ECR_REPO_NAME`        | Name of Docker ECR repo        |
+| `TF_CONTAINER_IMAGE`      | Full ECR image URL             |
+| `TF_JWT_SECRET`           | Auth token signing key         |
+| `TF_NODE_ENV`             | Environment name (prod/dev)    |
+| `TF_AZ1`, `TF_AZ2`        | Availability Zones             |
 
-Secrets Configuration: Set the following secrets in your GitHub repository:
+---
 
-AWS_ACCESS_KEY_ID
+## 🚀 Deployment Workflow
 
-AWS_SECRET_ACCESS_KEY
+Triggered on:
+- Push to `main` branch in `viberoll-infra`
+- OR `repository_dispatch` from `viberoll-backend`
 
-TF_PROJECT_NAME
+### Steps:
+1. Validates required secrets
+2. Writes a `secrets.auto.tfvars.json`
+3. Executes `terraform plan` and `apply`
+4. Provisions ECR, ECS, ALB, RDS, ElastiCache, etc.
+5. Uploads secrets to AWS Secrets Manager
 
-TF_ECR_REPO_NAME
+See: `.github/workflows/deploy.yml`
 
-TF_CONTAINER_IMAGE
+---
 
-TF_DB_USERNAME
+## 💣 Destroy Workflow
 
-TF_DB_PASSWORD
+Manually triggered via GitHub Actions → **Run workflow**
 
-TF_DB_NAME
+### What it does:
+- Generates same secrets file
+- Runs `terraform plan -destroy` + `apply`
+- Cleans up:
+  - AWS resources
+  - AWS Secrets in Secrets Manager
+  - ECR repo (with `--force`)
 
-TF_VPC_CIDR
+See: `.github/workflows/destroy.yml`
 
-TF_AZ1
+---
 
-TF_AZ2
+## 🧠 Best Practices Followed
 
-TF_HOST
+✅ Modular Terraform  
+✅ GitHub Actions secrets validation  
+✅ Remote backend (S3)  
+✅ State locking with DynamoDB  
+✅ Secrets never committed  
+✅ Clean destroy pipeline  
+✅ `prevent_destroy = false` where needed  
 
-TF_PORT
+---
 
-TF_NODE_ENV
+## 🧩 Future Enhancements
 
-TF_SALT_ROUNDS
+- ✅ Docker image digests instead of `:latest`
+- ✅ Trigger deploy only on successful image build
+- ✅ Rollback support with tagged images
+- ✅ Previews per pull request using dynamic environments
+- ⏳ Sync secrets to SSM Parameter Store for EC2-based compatibility
+- ⏳ Slack notifications on deploy
 
-TF_RPC_URL
+---
 
-TF_WALLET_PRIVATE_KEY
+## 🧪 Testing Your Setup
 
-TF_NFT_CONTRACT_ADDRESS
+**To test the deployed app:**
 
-TF_OPENAI_API_ENDPOINT
+```bash
+curl -X POST \
+  https://<alb-dns>/api-docs/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@demo.com","username":"demo","password":"123456"}'
+🤝 Contributing
+We love PRs! Feel free to fork, improve, and open a pull request.
 
-TF_OPENAI_API_KEY
-
-TF_JWT_SECRET
-
-TF_JWT_REFRESH_SECRET
-
-TF_JWT_ACCESS_TOKEN_EXPIRATION
-
-TF_JWT_REFRESH_TOKEN_EXPIRATION
-
-TF_ADMIN_EMAIL
-
-TF_ADMIN_PASSWORD
-
-TF_ADMIN_USERNAME
-
-PAT_TOKEN
-
-
-Deployment Workflow
-
-Trigger: A push to the main branch of the viberoll-backend repository triggers the docker-publish.yml workflow.
-
-Docker Build & Push: The workflow builds the Docker image and pushes it to ECR.
-
-Repository Dispatch: Upon successful push, a repository_dispatch event is sent to this repository.
-
-Deploy Workflow: The deploy.yml workflow is triggered, which:
-
-Initializes Terraform
-
-Validates and plans the infrastructure changes
-
-Applies the changes to provision/update resources
-
-
-Destroy Workflow
-
-To tear down the infrastructure:
-
-Manual Trigger: The destroy.yml workflow is manually triggered via the GitHub Actions tab.
-
-Execution:
-
-Terraform is initialized
-
-A destroy plan is created and applied
-
-AWS Secrets Manager entries related to the project are deleted
-
-The ECR repository specified by TF_ECR_REPO_NAME is forcefully deleted
-
-Note: The current configuration deletes only the specified ECR repository. To delete all ECR repositories tagged with the project name, additional scripting is required.
-
-
-🔄 Rollback & Preview Environments (Planned Enhancements)
-
-Immutable Image Digests: Transition from using :latest tags to immutable image digests to ensure consistent deployments.
-
-Rollback Support: Maintain a history of successful deployments to facilitate rollbacks in case of failures.
-
-Preview Environments: Automatically deploy feature branches to isolated environments for testing and validation.
-
-
-
-📄 License
-
-This project is licensed under the MIT License.
-
-For any issues or contributions, please open an issue or submit a pull request.
+📜 License
+MIT License. See LICENSE file.
