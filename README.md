@@ -192,8 +192,7 @@ curl -X POST \
 ---
 
 ## Contributing
-
 We love PRs! Feel free to fork, improve, and open a pull request.
 
 ## License
-MIT License. See LICENSE file.
+This project is licensed under the MIT License.
