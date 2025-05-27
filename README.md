@@ -166,8 +166,6 @@ See: `.github/workflows/destroy.yml`
 
 ---
 
----
-
 ## Future Enhancements
 
 ✅ Docker image digests instead of `:latest`  
@@ -176,8 +174,6 @@ See: `.github/workflows/destroy.yml`
 ✅ Previews per pull request using dynamic environments  
 ⏳ Sync secrets to SSM Parameter Store for EC2-based compatibility  
 ⏳ Slack notifications on deploy
-
----
 
 ---
 
