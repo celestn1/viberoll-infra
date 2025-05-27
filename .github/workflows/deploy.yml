@@ -149,13 +149,24 @@ jobs:
             echo "✅ All secrets have values"
           fi
 
+      - name: Determine container image to deploy
+        id: set-image
+        run: |
+          if [ "${{ github.event_name }}" = "repository_dispatch" ]; then
+            echo "Using dispatched image_digest"
+            echo "container_image=${{ github.event.client_payload.image_digest }}" >> $GITHUB_OUTPUT
+          else
+            echo "Using fallback secret container image"
+            echo "container_image=${TF_CONTAINER_IMAGE}" >> $GITHUB_OUTPUT
+          fi
+
       - name: Terraform Plan
         run: |
           terraform plan -input=false -out=tfplan \
             -var-file="secrets.auto.tfvars.json" \
             -var="project_name=${TF_PROJECT_NAME}" \
             -var="ecr_repo_name=${TF_ECR_REPO_NAME}" \
-            -var="container_image=${TF_CONTAINER_IMAGE}" \
+            -var="container_image=${{ steps.set-image.outputs.container_image }}" \
             -var="db_username=${TF_DB_USERNAME}" \
             -var="db_password=${TF_DB_PASSWORD}" \
             -var="db_name=${TF_DB_NAME}" \
