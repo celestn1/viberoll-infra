@@ -1,6 +1,6 @@
 # VibeRoll Infra
 
-Infrastructure as Code (IaC) for the **VibeRoll** application — a modern, AI-powered video sharing platform. This repo provisions all AWS infrastructure components using **Terraform** and handles **CI/CD** via **GitHub Actions**.
+Infrastructure as Code (IaC) for the **VibeRoll** application. A modern, AI-powered video sharing platform. This repo provisions all AWS infrastructure components using **Terraform** and handles **CI/CD** via **GitHub Actions**.
 
 <img src="./images/viberoll_architecture_improved.png" alt="AWS Infrastructure Diagram" width="600"/>
 
@@ -26,10 +26,10 @@ Infrastructure as Code (IaC) for the **VibeRoll** application — a modern, AI-p
 
 ---
 
-## 📂 Project Structure
+## 📂 Repo Structure
 
 ```
-celestn@CN001:/mnt/c/visual_studio_code/express-project/viberoll-project/viberoll-infra$ tree -I 'node_modules' -L 3
+celestn@CN001:/viberoll-project/viberoll-infra$ tree -I 'node_modules' -L 3
 viberoll-infra/
 ├── README.md
 ├── backend.tf
