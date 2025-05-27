@@ -116,17 +116,22 @@ jobs:
 
       - name: 💥 Force Delete AWS Secrets
         run: |
-          echo "🔐 Cleaning up all secrets related to ${{ secrets.TF_PROJECT_NAME }} ..."
-          aws secretsmanager list-secrets --include-planned-deletion \
+          echo "🔐 Cleaning up all secrets related to ${{ env.TF_PROJECT_NAME }} ..."
+          aws secretsmanager list-secrets \
+            --include-planned-deletion \
             --query 'SecretList[*].Name' --output text | tr '\t' '\n' | \
-            grep "${{ secrets.TF_PROJECT_NAME }}" | \
+            grep "${{ env.TF_PROJECT_NAME }}" | \
             xargs -I {} aws secretsmanager delete-secret \
               --secret-id {} --force-delete-without-recovery
 
       - name: 💥 Force Delete ECR Repo
         run: |
-          echo "🔐 Cleaning up ECR repository: ${{ secrets.TF_ECR_REPO_NAME }} ..."
+          echo "🔐 Cleaning up ECR repository: ${{ env.TF_ECR_REPO_NAME }} ..."
           aws ecr delete-repository \
-            --repository-name "${{ secrets.TF_ECR_REPO_NAME }}" \
+            --repository-name "${{ env.TF_ECR_REPO_NAME }}" \
             --force \
-            --region "$AWS_REGION"
+            --region "${AWS_REGION}"
+
+      - name: ✅ Confirm Teardown Complete
+        run: |
+          echo "✅ Infrastructure teardown complete for project: ${TF_PROJECT_NAME}"
