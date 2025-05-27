@@ -1,12 +1,12 @@
-# 📦 VibeRoll Infra
+# VibeRoll Infra
 
 Infrastructure as Code (IaC) for the **VibeRoll** application — a modern, AI-powered video sharing platform. This repo provisions all AWS infrastructure components using **Terraform** and handles **CI/CD** via **GitHub Actions**.
 
 ---
 
-## 🚀 What’s Inside?
+## What’s Inside?
 
-### 🔧 Infrastructure Managed
+### Infrastructure Managed
 - **VPC** with public/private subnets
 - **ALB** (Application Load Balancer)
 - **ECS Fargate** for containerized app hosting
@@ -24,32 +24,64 @@ Infrastructure as Code (IaC) for the **VibeRoll** application — a modern, AI-p
 
 ---
 
-## 📁 Repo Structure
+## 📂 Project Structure
 
-viberoll-infra/
-├── modules/
-│ ├── alb/
-│ ├── cloudwatch/
-│ ├── ecr/
-│ ├── ecs/
-│ ├── elasticache/
-│ ├── rds/
-│ ├── secrets/
-│ ├── vpc/
-│ └── waf/
+```
+celestn@CN001:/mnt/c/visual_studio_code/express-project/viberoll-project/viberoll-infra$ tree -I 'node_modules' -L 3
+.
+├── README.md
+├── backend.tf
+├── destroy.sh
 ├── main.tf
-├── variables.tf
+├── modules
+│   ├── alb
+│   │   ├── main.tf
+│   │   ├── outputs.tf
+│   │   └── variables.tf
+│   ├── cloudwatch
+│   │   ├── main.tf
+│   │   ├── outputs.tf
+│   │   └── variables.tf
+│   ├── ecr
+│   │   ├── main.tf
+│   │   ├── outputs.tf
+│   │   └── variables.tf
+│   ├── ecs
+│   │   ├── main.tf
+│   │   ├── outputs.tf
+│   │   └── variables.tf
+│   ├── elasticache
+│   │   ├── main.tf
+│   │   ├── outputs.tf
+│   │   └── variables.tf
+│   ├── rds
+│   │   ├── main.tf
+│   │   ├── outputs.tf
+│   │   └── variables.tf
+│   ├── secrets
+│   │   ├── main.tf
+│   │   ├── outputs.tf
+│   │   └── variables.tf
+│   ├── vpc
+│   │   ├── main.tf
+│   │   ├── outputs.tf
+│   │   └── variables.tf
+│   └── waf
+│       ├── main.tf
+│       ├── outputs.tf
+│       └── variables.tf
 ├── outputs.tf
-└── .github/
-└── workflows/
-├── deploy.yml
-└── destroy.yml
+├── terraform.tfvars
+└── variables.tf
 
+11 directories, 34 files
 
+```
 
 ---
 
-## 🔐 Environment Variables (Secrets)
+
+## Environment Variables (Secrets)
 
 All required secrets are stored in **GitHub Actions** > `Settings > Secrets and Variables`.
 
@@ -68,7 +100,7 @@ Here are some examples:
 
 ---
 
-## 🚀 Deployment Workflow
+## Deployment Workflow
 
 Triggered on:
 - Push to `main` branch in `viberoll-infra`
@@ -85,7 +117,7 @@ See: `.github/workflows/deploy.yml`
 
 ---
 
-## 💣 Destroy Workflow
+## Destroy Workflow
 
 Manually triggered via GitHub Actions → **Run workflow**
 
@@ -101,7 +133,7 @@ See: `.github/workflows/destroy.yml`
 
 ---
 
-## 🧠 Best Practices Followed
+## Best Practices Followed
 
 ✅ Modular Terraform  
 ✅ GitHub Actions secrets validation  
@@ -113,18 +145,18 @@ See: `.github/workflows/destroy.yml`
 
 ---
 
-## 🧩 Future Enhancements
+## Future Enhancements
 
-- ✅ Docker image digests instead of `:latest`
-- ✅ Trigger deploy only on successful image build
-- ✅ Rollback support with tagged images
-- ✅ Previews per pull request using dynamic environments
-- ⏳ Sync secrets to SSM Parameter Store for EC2-based compatibility
-- ⏳ Slack notifications on deploy
+✅ Docker image digests instead of `:latest`
+✅ Trigger deploy only on successful image build
+✅ Rollback support with tagged images
+✅ Previews per pull request using dynamic environments
+⏳ Sync secrets to SSM Parameter Store for EC2-based compatibility
+⏳ Slack notifications on deploy
 
 ---
 
-## 🧪 Testing Your Setup
+## Testing Your Setup
 
 **To test the deployed app:**
 
@@ -133,6 +165,7 @@ curl -X POST \
   https://<alb-dns>/api-docs/auth/register \
   -H "Content-Type: application/json" \
   -d '{"email":"test@demo.com","username":"demo","password":"123456"}'
+
 🤝 Contributing
 We love PRs! Feel free to fork, improve, and open a pull request.
 
