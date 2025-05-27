@@ -28,9 +28,10 @@ echo "🔐 Finding and force-deleting AWS Secrets for: $SECRETS_PREFIX"
 
 aws secretsmanager list-secrets \
   --region "$AWS_REGION" \
+  --include-planned-deletion \
   --query "SecretList[?starts_with(Name, '$SECRETS_PREFIX')].Name" \
   --output text | tr '\t' '\n' | while read -r secret_name; do
-    echo "🚨 Deleting secret: $secret_name"
+    echo "Deleting secret: $secret_name"
     aws secretsmanager delete-secret \
       --secret-id "$secret_name" \
       --region "$AWS_REGION" \
@@ -41,8 +42,7 @@ done
 # STEP 3: Cleanup local .terraform directory (optional)
 # ────────────────────────────────────────────────────────────────
 
-echo "🧼 Cleaning local Terraform cache..."
+echo "Cleaning local Terraform cache..."
 rm -rf .terraform terraform.tfstate terraform.tfstate.backup tfplan || true
 
 echo "✅ Teardown complete."
-
