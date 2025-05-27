@@ -166,14 +166,18 @@ See: `.github/workflows/destroy.yml`
 
 ---
 
+---
+
 ## Future Enhancements
 
-✅ Docker image digests instead of `:latest`
-✅ Trigger deploy only on successful image build
-✅ Rollback support with tagged images
-✅ Previews per pull request using dynamic environments
-⏳ Sync secrets to SSM Parameter Store for EC2-based compatibility
+✅ Docker image digests instead of `:latest`  
+✅ Trigger deploy only on successful image build  
+✅ Rollback support with tagged images  
+✅ Previews per pull request using dynamic environments  
+⏳ Sync secrets to SSM Parameter Store for EC2-based compatibility  
 ⏳ Slack notifications on deploy
+
+---
 
 ---
 
