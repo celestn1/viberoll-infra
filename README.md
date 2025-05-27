@@ -191,8 +191,9 @@ curl -X POST \
 
 ---
 
-##🤝 Contributing
+## Contributing
+
 We love PRs! Feel free to fork, improve, and open a pull request.
 
-##📜 License
+## License
 MIT License. See LICENSE file.
