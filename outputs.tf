@@ -17,8 +17,8 @@ output "ecr_repo_url" {
 }
 
 output "rds_endpoint" {
-  description = "RDS PostgreSQL database endpoint"
-  value       = module.rds.rds_endpoint
+  description = "RDS PostgreSQL database endpoint(address used for host only)"
+  value       = module.rds.rds_address
 }
 
 output "redis_endpoint" {

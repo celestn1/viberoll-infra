@@ -10,7 +10,7 @@ locals {
   base_secrets = var.secrets_map
 
   secrets_map = merge(local.base_secrets, {
-    DATABASE_URL = "postgres://${var.db_username}:${var.db_password}@${module.rds.rds_endpoint}:5432/${var.db_name}"
+    DATABASE_URL = "postgres://${var.db_username}:${var.db_password}@${module.rds.rds_addres}:5432/${var.db_name}"
     REDIS_URL    = "redis://${module.elasticache.redis_endpoint}:6379"
   })
 
