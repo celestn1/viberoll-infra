@@ -30,7 +30,7 @@ Infrastructure as Code (IaC) for the **VibeRoll** application — a modern, AI-p
 
 ```
 celestn@CN001:/mnt/c/visual_studio_code/express-project/viberoll-project/viberoll-infra$ tree -I 'node_modules' -L 3
-.
+viberoll-infra/
 ├── README.md
 ├── backend.tf
 ├── destroy.sh
@@ -89,16 +89,35 @@ All required secrets are stored in **GitHub Actions** > `Settings > Secrets and 
 
 Here are some examples:
 
-| Name                      | Description                    |
-|---------------------------|--------------------------------|
-| `TF_PROJECT_NAME`         | Project name prefix            |
-| `TF_DB_USERNAME`          | DB user for RDS                |
-| `TF_DB_PASSWORD`          | DB password                    |
-| `TF_ECR_REPO_NAME`        | Name of Docker ECR repo        |
-| `TF_CONTAINER_IMAGE`      | Full ECR image URL             |
-| `TF_JWT_SECRET`           | Auth token signing key         |
-| `TF_NODE_ENV`             | Environment name (prod/dev)    |
-| `TF_AZ1`, `TF_AZ2`        | Availability Zones             |
+| Name                              | Description                                                            |
+| --------------------------------- | ---------------------------------------------------------------------- |
+| `TF_PROJECT_NAME`                 | Project name prefix                                                    |
+| `TF_DB_USERNAME`                  | Database user for RDS                                                  |
+| `TF_DB_PASSWORD`                  | Database password                                                      |
+| `TF_DB_NAME`                      | Name of the RDS database                                               |
+| `TF_ECR_REPO_NAME`                | Name of the Docker ECR repository                                      |
+| `TF_CONTAINER_IMAGE`              | Full ECR image URI for container deployments                           |
+| `TF_JWT_SECRET`                   | JWT auth token signing key                                             |
+| `TF_JWT_REFRESH_SECRET`           | Refresh token secret                                                   |
+| `TF_JWT_ACCESS_TOKEN_EXPIRATION`  | Access token expiration (e.g., `15m`)                                  |
+| `TF_JWT_REFRESH_TOKEN_EXPIRATION` | Refresh token expiration (e.g., `7d`)                                  |
+| `TF_NODE_ENV`                     | Environment name (e.g., `production`, `development`)                   |
+| `TF_HOST`                         | Application host URL                                                   |
+| `TF_PORT`                         | Application port                                                       |
+| `TF_VPC_CIDR`                     | VPC CIDR block                                                         |
+| `TF_AZ1`, `TF_AZ2`                | Availability Zones for high availability                               |
+| `TF_SALT_ROUNDS`                  | Bcrypt salt rounds for password hashing                                |
+| `TF_RPC_URL`                      | Blockchain RPC URL                                                     |
+| `TF_WALLET_PRIVATE_KEY`           | Private key for wallet signing                                         |
+| `TF_NFT_CONTRACT_ADDRESS`         | Smart contract address for NFTs                                        |
+| `TF_OPENAI_API_ENDPOINT`          | Endpoint for OpenAI API usage                                          |
+| `TF_OPENAI_API_KEY`               | Key for accessing OpenAI services                                      |
+| `TF_ADMIN_EMAIL`                  | Admin user email                                                       |
+| `TF_ADMIN_PASSWORD`               | Admin user password                                                    |
+| `TF_ADMIN_USERNAME`               | Admin username                                                         |
+| `AWS_ACCESS_KEY_ID`               | AWS access key ID for GitHub Actions                                   |
+| `AWS_SECRET_ACCESS_KEY`           | AWS secret access key for GitHub Actions                               |
+| `PAT_TOKEN`                       | GitHub Personal Access Token (for accessing private repos or packages) |
 
 ---
 
