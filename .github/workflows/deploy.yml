@@ -8,6 +8,9 @@ on:
     branches:
       - main
 
+  repository_dispatch:
+    types: [deploy-trigger]
+
 jobs:
   deploy:
     name: Terraform Deploy
