@@ -187,8 +187,12 @@ curl -X POST \
   -H "Content-Type: application/json" \
   -d '{"email":"test@demo.com","username":"demo","password":"123456"}'
 
-🤝 Contributing
+```
+
+---
+
+##🤝 Contributing
 We love PRs! Feel free to fork, improve, and open a pull request.
 
-📜 License
+##📜 License
 MIT License. See LICENSE file.
