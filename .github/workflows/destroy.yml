@@ -128,7 +128,7 @@ jobs:
         run: |
           echo "Searching for ECR repos related to: ${{ env.TF_PROJECT_NAME }}"
           aws ecr describe-repositories --region "$AWS_REGION" \
-            --query "repositories[?contains(repositoryName, '${{ env.TF_PROJECT_NAME }})'].repositoryName" \
+            --query "repositories[?contains(repositoryName, \'${{ env.TF_PROJECT_NAME }}\`)].repositoryName" \
             --output text | tr '\t' '\n' | while read repo; do
               echo "Deleting ECR repository: $repo"
               aws ecr delete-repository --repository-name "$repo" --force --region "$AWS_REGION"
