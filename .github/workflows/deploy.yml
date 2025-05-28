@@ -1,7 +1,6 @@
 # ------------------------------
 # .github/workflows/deploy.yml
 # ------------------------------
-# task test
 name: Deploy to AWS
 
 on:
@@ -180,3 +179,33 @@ jobs:
 
       - name: Terraform Apply
         run: terraform apply -input=false -auto-approve tfplan
+
+      - name: Save Terraform Outputs to JSON
+        id: tf_outputs
+        run: terraform output -json > tf-outputs.json
+
+      - name: Extract ECS Networking Configuration
+        id: parse_network
+        run: |
+          SUBNETS=$(jq -r '.private_subnets.value | join(",")' tf-outputs.json)
+          ECS_SG=$(jq -r '.ecs_sg_id.value' tf-outputs.json)
+
+          echo "ECS_SUBNETS=$SUBNETS" >> $GITHUB_ENV
+          echo "ECS_SECURITY_GROUP=$ECS_SG" >> $GITHUB_ENV
+
+      - name: Run ECS Task for DB Migrations
+        run: |
+          aws ecs run-task \
+            --cluster "${TF_PROJECT_NAME}-cluster" \
+            --launch-type FARGATE \
+            --task-definition "${TF_PROJECT_NAME}-task" \
+            --network-configuration "awsvpcConfiguration={subnets=[${ECS_SUBNETS}],securityGroups=[${ECS_SECURITY_GROUP}],assignPublicIp=ENABLED}" \
+            --overrides '{
+              "containerOverrides": [
+                {
+                  "name": "'"${TF_PROJECT_NAME}-app"'",
+                  "command": ["npm", "run", "migrate"]
+                }
+              ]
+            }' \
+            --region "$AWS_REGION"
