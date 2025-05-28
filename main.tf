@@ -1,7 +1,6 @@
 # ------------------------------
 # viberoll-infra/main.tf
 # ------------------------------
-
 provider "aws" {
   region = var.aws_region
 }
@@ -9,10 +8,13 @@ provider "aws" {
 locals {
   base_secrets = var.secrets_map
 
-  secrets_map = merge(local.base_secrets, {
-    DATABASE_URL = "postgres://${var.db_username}:${var.db_password}@${module.rds.rds_address}:5432/${var.db_name}"
-    REDIS_URL    = "redis://${module.elasticache.redis_endpoint}:6379"
-  })
+  secrets_map = merge(
+    local.base_secrets,
+    {
+      DATABASE_URL = "postgres://${var.db_username}:${var.db_password}@${module.rds.rds_address}:5432/${var.db_name}"
+      REDIS_URL    = "redis://${module.elasticache.redis_endpoint}:6379"
+    }
+  )
 
   common_tags = {
     Project     = var.project_name
@@ -55,12 +57,11 @@ module "ecs" {
   project_name       = var.project_name
   secret_arns        = module.secrets.secret_arns
 
-
   environment = {
-    ALB_DNS                  = module.alb.dns_name
-    ALB_SCHEME               = "https"
-    SWAGGER_SERVER_URL       = "https://${module.alb.dns_name}"
-    PGSSLMODE                = "require"
+    ALB_DNS                      = module.alb.dns_name
+    ALB_SCHEME                   = "https"
+    SWAGGER_SERVER_URL           = "https://${module.alb.dns_name}"
+    PGSSLMODE                    = "require"
     NODE_TLS_REJECT_UNAUTHORIZED = "0"
   }
 }
