@@ -17,32 +17,32 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      AWS_REGION:                    	eu-west-2
-      TF_PROJECT_NAME:               	${{ secrets.TF_PROJECT_NAME }}
-      TF_ECR_REPO_NAME:              	${{ secrets.TF_ECR_REPO_NAME }}
-      TF_CONTAINER_IMAGE:            	${{ secrets.TF_CONTAINER_IMAGE }}
-      TF_DB_USERNAME:                	${{ secrets.TF_DB_USERNAME }}
-      TF_DB_NAME:                    	${{ secrets.TF_DB_NAME }}
-      TF_DB_PASSWORD:                	${{ secrets.TF_DB_PASSWORD }}
-      TF_VPC_CIDR:                   	${{ secrets.TF_VPC_CIDR }}
-      TF_AZ1:                        	${{ secrets.TF_AZ1 }}
-      TF_AZ2:                        	${{ secrets.TF_AZ2 }}
-      TF_HOST:                       	${{ secrets.TF_HOST }}
-      TF_PORT:                       	${{ secrets.TF_PORT }}
-      TF_NODE_ENV:                   	${{ secrets.TF_NODE_ENV }}
-      TF_SALT_ROUNDS:                	${{ secrets.TF_SALT_ROUNDS }}
-      TF_RPC_URL:                    	${{ secrets.TF_RPC_URL }}
-      TF_WALLET_PRIVATE_KEY:         	${{ secrets.TF_WALLET_PRIVATE_KEY }}
-      TF_NFT_CONTRACT_ADDRESS:       	${{ secrets.TF_NFT_CONTRACT_ADDRESS }}
-      TF_OPENAI_API_ENDPOINT:        	${{ secrets.TF_OPENAI_API_ENDPOINT }}
-      TF_OPENAI_API_KEY:             	${{ secrets.TF_OPENAI_API_KEY }}
-      TF_JWT_SECRET:                 	${{ secrets.TF_JWT_SECRET }}
-      TF_JWT_REFRESH_SECRET:         	${{ secrets.TF_JWT_REFRESH_SECRET }}
-      TF_JWT_ACCESS_TOKEN_EXPIRATION:	${{ secrets.TF_JWT_ACCESS_TOKEN_EXPIRATION }}
+      AWS_REGION:                    	  eu-west-2
+      TF_PROJECT_NAME:               	  ${{ secrets.TF_PROJECT_NAME }}
+      TF_ECR_REPO_NAME:              	  ${{ secrets.TF_ECR_REPO_NAME }}
+      TF_CONTAINER_IMAGE:            	  ${{ secrets.TF_CONTAINER_IMAGE }}
+      TF_DB_USERNAME:                	  ${{ secrets.TF_DB_USERNAME }}
+      TF_DB_NAME:                    	  ${{ secrets.TF_DB_NAME }}
+      TF_DB_PASSWORD:                	  ${{ secrets.TF_DB_PASSWORD }}
+      TF_VPC_CIDR:                   	  ${{ secrets.TF_VPC_CIDR }}
+      TF_AZ1:                        	  ${{ secrets.TF_AZ1 }}
+      TF_AZ2:                        	  ${{ secrets.TF_AZ2 }}
+      TF_HOST:                       	  ${{ secrets.TF_HOST }}
+      TF_PORT:                       	  ${{ secrets.TF_PORT }}
+      TF_NODE_ENV:                   	  ${{ secrets.TF_NODE_ENV }}
+      TF_SALT_ROUNDS:                	  ${{ secrets.TF_SALT_ROUNDS }}
+      TF_RPC_URL:                    	  ${{ secrets.TF_RPC_URL }}
+      TF_WALLET_PRIVATE_KEY:         	  ${{ secrets.TF_WALLET_PRIVATE_KEY }}
+      TF_NFT_CONTRACT_ADDRESS:       	  ${{ secrets.TF_NFT_CONTRACT_ADDRESS }}
+      TF_OPENAI_API_ENDPOINT:        	  ${{ secrets.TF_OPENAI_API_ENDPOINT }}
+      TF_OPENAI_API_KEY:             	  ${{ secrets.TF_OPENAI_API_KEY }}
+      TF_JWT_SECRET:                 	  ${{ secrets.TF_JWT_SECRET }}
+      TF_JWT_REFRESH_SECRET:         	  ${{ secrets.TF_JWT_REFRESH_SECRET }}
+      TF_JWT_ACCESS_TOKEN_EXPIRATION:	  ${{ secrets.TF_JWT_ACCESS_TOKEN_EXPIRATION }}
       TF_JWT_REFRESH_TOKEN_EXPIRATION:	${{ secrets.TF_JWT_REFRESH_TOKEN_EXPIRATION }}
-      TF_ADMIN_EMAIL:                	${{ secrets.TF_ADMIN_EMAIL }}
-      TF_ADMIN_PASSWORD:             	${{ secrets.TF_ADMIN_PASSWORD }}
-      TF_ADMIN_USERNAME:             	${{ secrets.TF_ADMIN_USERNAME }}
+      TF_ADMIN_EMAIL:                	  ${{ secrets.TF_ADMIN_EMAIL }}
+      TF_ADMIN_PASSWORD:             	  ${{ secrets.TF_ADMIN_PASSWORD }}
+      TF_ADMIN_USERNAME:             	  ${{ secrets.TF_ADMIN_USERNAME }}
       COMMIT_MESSAGE: ${{ github.event_name == 'repository_dispatch' 
                           ? github.event.client_payload.commit_message 
                           : github.event.head_commit.message }}
