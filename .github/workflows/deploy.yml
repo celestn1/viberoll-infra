@@ -16,6 +16,10 @@ jobs:
     name: Terraform Deploy
     runs-on: ubuntu-latest
 
+    concurrency:
+      group: infra-deploy
+      cancel-in-progress: true    
+
     env:
       AWS_REGION:                    	eu-west-2
       TF_PROJECT_NAME:               	${{ secrets.TF_PROJECT_NAME }}
