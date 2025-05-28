@@ -1,7 +1,7 @@
 # ------------------------------
 # .github/workflows/deploy.yml
 # ------------------------------
-name: Deploy to AWS
+name: "${{ github.event_name == 'repository_dispatch' && format('Deploy to AWS: {0}', github.event.client_payload.commit_message) || format('Deploy to AWS: {0}', github.event.head_commit.message) }}"
 
 on:
   push:
@@ -48,19 +48,9 @@ jobs:
       TF_ADMIN_PASSWORD:               ${{ secrets.TF_ADMIN_PASSWORD }}
       TF_ADMIN_USERNAME:               ${{ secrets.TF_ADMIN_USERNAME }}
 
-
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
-
-      - name: Show triggering commit
-        run: |
-          if [ "${{ github.event_name }}" = "repository_dispatch" ]; then
-            echo "Deploy triggered by: ${{ github.event.client_payload.commit_message }}"
-          else
-            echo "Deploy triggered by: ${{ github.event.head_commit.message }}"
-          fi
-
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
