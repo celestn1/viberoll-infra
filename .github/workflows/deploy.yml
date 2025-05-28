@@ -244,10 +244,3 @@ jobs:
           aws ecs wait tasks-stopped \
             --cluster "${TF_PROJECT_NAME}-cluster" \
             --tasks "$TASK_ARN"
-
-
-
-
-
-
-
