@@ -108,6 +108,7 @@ resource "aws_ecs_task_definition" "this" {
       name      = "${var.project_name}-app",
       image     = var.container_image,
       essential = true,
+
       portMappings = [
         {
           containerPort = 4001,
@@ -115,13 +116,14 @@ resource "aws_ecs_task_definition" "this" {
         }
       ],
 
+      # ← Updated: iterate map with key,value
       environment = [
-        for pair in var.environment : {
-          name  = pair.key
-          value = pair.value
+        for env_name, env_value in var.environment : {
+          name  = env_name
+          value = env_value
         }
       ],
-      
+
       logConfiguration = {
         logDriver = "awslogs",
         options = {
@@ -130,6 +132,7 @@ resource "aws_ecs_task_definition" "this" {
           awslogs-stream-prefix = var.project_name
         }
       },
+
       secrets = [
         for key, arn in var.secret_arns : {
           name      = key,
