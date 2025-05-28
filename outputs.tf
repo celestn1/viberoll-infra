@@ -11,6 +11,10 @@ output "vpc_id" {
   value       = module.vpc.vpc_id
 }
 
+output "private_subnets" {
+  value = module.vpc.private_subnets
+}
+
 output "ecr_repo_url" {
   description = "URL of the ECR repository"
   value       = module.ecr.repository_url
@@ -30,3 +34,4 @@ output "secrets_manager_arns" {
   description = "ARNs of secrets created in AWS Secrets Manager"
   value       = module.secrets.secret_arns
 }
+
