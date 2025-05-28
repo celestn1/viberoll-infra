@@ -1,6 +1,7 @@
 # ------------------------------
 # viberoll-infra/modules/ecs/main.tf
 # ------------------------------
+
 resource "aws_ecs_cluster" "this" {
   name = "${var.cluster_name}-cluster"
 
@@ -44,7 +45,7 @@ resource "aws_iam_role_policy_attachment" "exec_policy" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
-# Additional inline policy to allow access to secrets
+# Inline policy to allow access to Secrets Manager
 resource "aws_iam_policy" "secrets_access" {
   name = "${var.project_name}-ecs-secrets-access"
 
@@ -52,11 +53,8 @@ resource "aws_iam_policy" "secrets_access" {
     Version = "2012-10-17",
     Statement = [
       {
-        Effect = "Allow",
-        Action = [
-          "secretsmanager:GetSecretValue",
-          "secretsmanager:DescribeSecret"
-        ],
+        Effect   = "Allow",
+        Action   = ["secretsmanager:GetSecretValue","secretsmanager:DescribeSecret"],
         Resource = "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:${var.project_name}-*"
       }
     ]
@@ -105,37 +103,36 @@ resource "aws_ecs_task_definition" "this" {
 
   container_definitions = jsonencode([
     {
-      name      = "${var.project_name}-app",
-      image     = var.container_image,
-      essential = true,
+      name      = "${var.project_name}-app"
+      image     = var.container_image
+      essential = true
 
       portMappings = [
         {
-          containerPort = 4001,
+          containerPort = 4001
           hostPort      = 4001
         }
-      ],
+      ]
 
-      # ← Updated: iterate map with key,value
       environment = [
         for env_name, env_value in var.environment : {
           name  = env_name
           value = env_value
         }
-      ],
+      ]
 
       logConfiguration = {
-        logDriver = "awslogs",
+        logDriver = "awslogs"
         options = {
-          awslogs-group         = "/ecs/${var.project_name}",
-          awslogs-region        = var.aws_region,
+          awslogs-group         = "/ecs/${var.project_name}"
+          awslogs-region        = var.aws_region
           awslogs-stream-prefix = var.project_name
         }
-      },
+      }
 
       secrets = [
         for key, arn in var.secret_arns : {
-          name      = key,
+          name      = key
           valueFrom = arn
         }
       ]
@@ -150,7 +147,6 @@ resource "aws_ecs_task_definition" "this" {
 
   lifecycle {
     prevent_destroy = false
-    
   }
 }
 
@@ -177,6 +173,7 @@ resource "aws_ecs_service" "this" {
   health_check_grace_period_seconds = 60
   depends_on                        = [var.alb_listener_arn]
 
+  # force a new deployment on every apply
   force_new_deployment = true
 
   tags = {

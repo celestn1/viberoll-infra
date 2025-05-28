@@ -59,8 +59,8 @@ module "ecs" {
 
   environment = {
     ALB_DNS                      = module.alb.alb_dns
-    ALB_SCHEME                   = "https"
-    SWAGGER_SERVER_URL           = "https://${module.alb.alb_dns}"
+    ALB_SCHEME                   = "http"
+    SWAGGER_SERVER_URL           = "http://${module.alb.alb_dns}"
     PGSSLMODE                    = "require"
     NODE_TLS_REJECT_UNAUTHORIZED = "0"
   }
