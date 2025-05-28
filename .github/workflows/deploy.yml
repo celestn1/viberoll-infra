@@ -43,6 +43,10 @@ jobs:
       TF_ADMIN_EMAIL:                	${{ secrets.TF_ADMIN_EMAIL }}
       TF_ADMIN_PASSWORD:             	${{ secrets.TF_ADMIN_PASSWORD }}
       TF_ADMIN_USERNAME:             	${{ secrets.TF_ADMIN_USERNAME }}
+      COMMIT_MESSAGE: ${{ github.event_name == 'repository_dispatch' 
+                          ? github.event.client_payload.commit_message 
+                          : github.event.head_commit.message }}
+
 
     steps:
       - name: Checkout Repository
@@ -130,6 +134,11 @@ jobs:
           else
             echo "✅ All secrets have values"
           fi
+
+      - name: Show triggering commit
+        run: |
+          echo "Deploy triggered by commit:"
+          echo "$COMMIT_MESSAGE"
 
       - name: Determine container image to deploy
         id: set-image
