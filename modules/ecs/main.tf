@@ -177,6 +177,8 @@ resource "aws_ecs_service" "this" {
   health_check_grace_period_seconds = 60
   depends_on                        = [var.alb_listener_arn]
 
+  force_new_deployment = true
+
   tags = {
     Project     = var.project_name
     Environment = "ephemeral"
@@ -185,6 +187,6 @@ resource "aws_ecs_service" "this" {
 
   lifecycle {
     prevent_destroy = false
-    ignore_changes  = [desired_count, task_definition]
+    ignore_changes  = [desired_count]
   }
 }
