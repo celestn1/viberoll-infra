@@ -30,3 +30,11 @@ output "secrets_manager_arns" {
   description = "ARNs of secrets created in AWS Secrets Manager"
   value       = module.secrets.secret_arns
 }
+
+output "private_subnets" {
+  value = module.vpc.private_subnets
+}
+
+output "ecs_sg_id" {
+  value = module.vpc.ecs_sg_id
+}

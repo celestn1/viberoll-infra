@@ -183,3 +183,46 @@ jobs:
       - name: Save Terraform Outputs to JSON
         id: tf_outputs
         run: terraform output -json > tf-outputs.json
+
+      - name: Save network settings from Terraform outputs
+        id: net
+        run: |
+          PRIVATE_SUBNETS_JSON=$(jq -c '.private_subnets.value' tf-outputs.json)
+          ECS_SG_ID=$(jq -r     '.ecs_sg_id.value'     tf-outputs.json)
+          echo "private_subnets=$PRIVATE_SUBNETS_JSON" >> $GITHUB_OUTPUT
+          echo "ecs_sg_id=$ECS_SG_ID"             >> $GITHUB_OUTPUT
+
+      - name: Run DB migrations as one-off ECS task
+        run: |
+          TASK_ARN=$(aws ecs run-task \
+            --cluster "${TF_PROJECT_NAME}-cluster" \
+            --launch-type FARGATE \
+            --network-configuration "awsvpcConfiguration={subnets=${{ steps.net.outputs.private_subnets }},securityGroups=[\"${{ steps.net.outputs.ecs_sg_id }}\"],assignPublicIp=DISABLED}" \
+            --task-definition "${TF_PROJECT_NAME}-task" \
+            --overrides '{"containerOverrides":[{"name":"'"${TF_PROJECT_NAME}-app"'","command":["npm","run","migrate"]}]}' \
+            --query 'tasks[0].taskArn' --output text)
+
+          aws ecs wait tasks-stopped \
+            --cluster "${TF_PROJECT_NAME}-cluster" \
+            --tasks "$TASK_ARN"
+
+      - name: Seed admin user as one-off ECS task
+        run: |
+          TASK_ARN=$(aws ecs run-task \
+            --cluster "${TF_PROJECT_NAME}-cluster" \
+            --launch-type FARGATE \
+            --network-configuration "awsvpcConfiguration={subnets=${{ steps.net.outputs.private_subnets }},securityGroups=[\"${{ steps.net.outputs.ecs_sg_id }}\"],assignPublicIp=DISABLED}" \
+            --task-definition "${TF_PROJECT_NAME}-task" \
+            --overrides '{"containerOverrides":[{"name":"'"${TF_PROJECT_NAME}-app"'","command":["npm","run","seed:admin","--","--email","'"${TF_ADMIN_EMAIL}"'","--password","'"${TF_ADMIN_PASSWORD}"'"]}]}' \
+            --query 'tasks[0].taskArn' --output text)
+
+          aws ecs wait tasks-stopped \
+            --cluster "${TF_PROJECT_NAME}-cluster" \
+            --tasks "$TASK_ARN"
+
+
+
+
+
+
+
