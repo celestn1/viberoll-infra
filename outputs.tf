@@ -35,3 +35,7 @@ output "secrets_manager_arns" {
   value       = module.secrets.secret_arns
 }
 
+output "ecs_sg_id" {
+  description = "ECS security group ID"
+  value       = module.vpc.ecs_sg_id
+}
