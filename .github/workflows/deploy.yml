@@ -21,35 +21,33 @@ jobs:
       cancel-in-progress: true
 
     env:
-      AWS_REGION:                    	eu-west-2
-      TF_PROJECT_NAME:               	${{ secrets.TF_PROJECT_NAME }}
-      TF_ECR_REPO_NAME:              	${{ secrets.TF_ECR_REPO_NAME }}
-      TF_CONTAINER_IMAGE:            	${{ secrets.TF_CONTAINER_IMAGE }}
-      TF_DB_USERNAME:                	${{ secrets.TF_DB_USERNAME }}
-      TF_DB_NAME:                    	${{ secrets.TF_DB_NAME }}
-      TF_DB_PASSWORD:                	${{ secrets.TF_DB_PASSWORD }}
-      TF_VPC_CIDR:                   	${{ secrets.TF_VPC_CIDR }}
-      TF_AZ1:                        	${{ secrets.TF_AZ1 }}
-      TF_AZ2:                        	${{ secrets.TF_AZ2 }}
-      TF_HOST:                       	${{ secrets.TF_HOST }}
-      TF_PORT:                       	${{ secrets.TF_PORT }}
-      TF_NODE_ENV:                   	${{ secrets.TF_NODE_ENV }}
-      TF_SALT_ROUNDS:                	${{ secrets.TF_SALT_ROUNDS }}
-      TF_RPC_URL:                    	${{ secrets.TF_RPC_URL }}
-      TF_WALLET_PRIVATE_KEY:         	${{ secrets.TF_WALLET_PRIVATE_KEY }}
-      TF_NFT_CONTRACT_ADDRESS:       	${{ secrets.TF_NFT_CONTRACT_ADDRESS }}
-      TF_OPENAI_API_ENDPOINT:        	${{ secrets.TF_OPENAI_API_ENDPOINT }}
-      TF_OPENAI_API_KEY:             	${{ secrets.TF_OPENAI_API_KEY }}
-      TF_JWT_SECRET:                 	${{ secrets.TF_JWT_SECRET }}
-      TF_JWT_REFRESH_SECRET:         	${{ secrets.TF_JWT_REFRESH_SECRET }}
-      TF_JWT_ACCESS_TOKEN_EXPIRATION:	${{ secrets.TF_JWT_ACCESS_TOKEN_EXPIRATION }}
-      TF_JWT_REFRESH_TOKEN_EXPIRATION:	${{ secrets.TF_JWT_REFRESH_TOKEN_EXPIRATION }}
-      TF_ADMIN_EMAIL:                	${{ secrets.TF_ADMIN_EMAIL }}
-      TF_ADMIN_PASSWORD:             	${{ secrets.TF_ADMIN_PASSWORD }}
-      TF_ADMIN_USERNAME:             	${{ secrets.TF_ADMIN_USERNAME }}
-      COMMIT_MESSAGE: ${{ github.event_name == 'repository_dispatch' 
-                         ? github.event.client_payload.commit_message 
-                         : github.event.head_commit.message }}
+      AWS_REGION:                      eu-west-2
+      TF_PROJECT_NAME:                 ${{ secrets.TF_PROJECT_NAME }}
+      TF_ECR_REPO_NAME:                ${{ secrets.TF_ECR_REPO_NAME }}
+      TF_CONTAINER_IMAGE:              ${{ secrets.TF_CONTAINER_IMAGE }}
+      TF_DB_USERNAME:                  ${{ secrets.TF_DB_USERNAME }}
+      TF_DB_NAME:                      ${{ secrets.TF_DB_NAME }}
+      TF_DB_PASSWORD:                  ${{ secrets.TF_DB_PASSWORD }}
+      TF_VPC_CIDR:                     ${{ secrets.TF_VPC_CIDR }}
+      TF_AZ1:                          ${{ secrets.TF_AZ1 }}
+      TF_AZ2:                          ${{ secrets.TF_AZ2 }}
+      TF_HOST:                         ${{ secrets.TF_HOST }}
+      TF_PORT:                         ${{ secrets.TF_PORT }}
+      TF_NODE_ENV:                     ${{ secrets.TF_NODE_ENV }}
+      TF_SALT_ROUNDS:                  ${{ secrets.TF_SALT_ROUNDS }}
+      TF_RPC_URL:                      ${{ secrets.TF_RPC_URL }}
+      TF_WALLET_PRIVATE_KEY:           ${{ secrets.TF_WALLET_PRIVATE_KEY }}
+      TF_NFT_CONTRACT_ADDRESS:         ${{ secrets.TF_NFT_CONTRACT_ADDRESS }}
+      TF_OPENAI_API_ENDPOINT:          ${{ secrets.TF_OPENAI_API_ENDPOINT }}
+      TF_OPENAI_API_KEY:               ${{ secrets.TF_OPENAI_API_KEY }}
+      TF_JWT_SECRET:                   ${{ secrets.TF_JWT_SECRET }}
+      TF_JWT_REFRESH_SECRET:           ${{ secrets.TF_JWT_REFRESH_SECRET }}
+      TF_JWT_ACCESS_TOKEN_EXPIRATION:  ${{ secrets.TF_JWT_ACCESS_TOKEN_EXPIRATION }}
+      TF_JWT_REFRESH_TOKEN_EXPIRATION: ${{ secrets.TF_JWT_REFRESH_TOKEN_EXPIRATION }}
+      TF_ADMIN_EMAIL:                  ${{ secrets.TF_ADMIN_EMAIL }}
+      TF_ADMIN_PASSWORD:               ${{ secrets.TF_ADMIN_PASSWORD }}
+      TF_ADMIN_USERNAME:               ${{ secrets.TF_ADMIN_USERNAME }}
+
 
     steps:
       - name: Checkout Repository
@@ -57,11 +55,12 @@ jobs:
 
       - name: Show triggering commit
         run: |
-          echo "Deploy triggered by:"
-          echo "$COMMIT_MESSAGE"
+          if [ "${{ github.event_name }}" = "repository_dispatch" ]; then
+            echo "Deploy triggered by: ${{ github.event.client_payload.commit_message }}"
+          else
+            echo "Deploy triggered by: ${{ github.event.head_commit.message }}"
+          fi
 
-      - name: Checkout Repository
-        uses: actions/checkout@v3
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
@@ -78,7 +77,7 @@ jobs:
       - name: Terraform Init
         run: terraform init
 
-      - name: Terraform Format
+      - name: Terraform Format Check
         run: terraform fmt -check
 
       - name: Terraform Validate
@@ -105,6 +104,7 @@ jobs:
               echo "✅ $key is set"
             fi
           done
+
       - name: Generate secrets.auto.tfvars.json
         run: |
           cat > secrets.auto.tfvars.json <<EOF
@@ -129,6 +129,7 @@ jobs:
             }
           }
           EOF
+
       - name: 🔍 Validate secrets.auto.tfvars.json has no empty values
         run: |
           MISSING=$(jq -r '
@@ -143,6 +144,7 @@ jobs:
           else
             echo "✅ All secrets have values"
           fi
+
       - name: Determine container image to deploy
         id: set-image
         run: |
@@ -153,6 +155,7 @@ jobs:
             echo "Using fallback secret container image"
             echo "container_image=${TF_CONTAINER_IMAGE}" >> $GITHUB_OUTPUT
           fi
+
       - name: Terraform Plan
         run: |
           terraform plan -input=false -out=tfplan \
@@ -169,6 +172,7 @@ jobs:
             -var="vpc_cidr=${TF_VPC_CIDR}" \
             -var="environment=${TF_NODE_ENV}" \
             -var="azs=[\"${TF_AZ1}\",\"${TF_AZ2}\"]"
+
       - name: Terraform Apply
         run: terraform apply -input=false -auto-approve tfplan
 
@@ -180,7 +184,7 @@ jobs:
         id: net
         run: |
           PRIVATE_SUBNETS_JSON=$(jq -c '.private_subnets.value' tf-outputs.json)
-          ECS_SG_ID=$(jq -r '.ecs_sg_id.value' tf-outputs.json)
+          ECS_SG_ID=$(jq -r     '.ecs_sg_id.value'     tf-outputs.json)
           echo "private_subnets=$PRIVATE_SUBNETS_JSON" >> $GITHUB_OUTPUT
           echo "ecs_sg_id=$ECS_SG_ID"             >> $GITHUB_OUTPUT
 
@@ -192,14 +196,14 @@ jobs:
             --network-configuration "awsvpcConfiguration={subnets=${{ steps.net.outputs.private_subnets }},securityGroups=[\"${{ steps.net.outputs.ecs_sg_id }}\"],assignPublicIp=DISABLED}" \
             --task-definition "${TF_PROJECT_NAME}-task" \
             --overrides '{
-              "containerOverrides": [
+              "containerOverrides":[
                 {
-                  "name": "'"${TF_PROJECT_NAME}-app"'" ,
-                  "environment": [
-                    {"name": "PGSSLMODE", "value": "require"},
-                    {"name": "NODE_TLS_REJECT_UNAUTHORIZED", "value": "0"}
+                  "name":"'"${TF_PROJECT_NAME}-app"'",
+                  "environment":[
+                    {"name":"PGSSLMODE","value":"require"},
+                    {"name":"NODE_TLS_REJECT_UNAUTHORIZED","value":"0"}
                   ],
-                  "command": ["npm","run","migrate"]
+                  "command":["npm","run","migrate"]
                 }
               ]
             }' \
@@ -217,14 +221,14 @@ jobs:
             --network-configuration "awsvpcConfiguration={subnets=${{ steps.net.outputs.private_subnets }},securityGroups=[\"${{ steps.net.outputs.ecs_sg_id }}\"],assignPublicIp=DISABLED}" \
             --task-definition "${TF_PROJECT_NAME}-task" \
             --overrides '{
-              "containerOverrides": [
+              "containerOverrides":[
                 {
-                  "name": "'"${TF_PROJECT_NAME}-app"'" ,
-                  "environment": [
-                    {"name": "PGSSLMODE", "value": "require"},
-                    {"name": "NODE_TLS_REJECT_UNAUTHORIZED", "value": "0"}
+                  "name":"'"${TF_PROJECT_NAME}-app"'",
+                  "environment":[
+                    {"name":"PGSSLMODE","value":"require"},
+                    {"name":"NODE_TLS_REJECT_UNAUTHORIZED","value":"0"}
                   ],
-                  "command": ["npm","run","seed:admin","--","--email","'"${TF_ADMIN_EMAIL}"'","--password","'"${TF_ADMIN_PASSWORD}"'"]
+                  "command":["npm","run","seed:admin","--","--email","'"${TF_ADMIN_EMAIL}"'","--password","'"${TF_ADMIN_PASSWORD}"'"]
                 }
               ]
             }' \
