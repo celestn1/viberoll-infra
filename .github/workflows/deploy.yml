@@ -47,8 +47,19 @@ jobs:
       TF_ADMIN_EMAIL:                	${{ secrets.TF_ADMIN_EMAIL }}
       TF_ADMIN_PASSWORD:             	${{ secrets.TF_ADMIN_PASSWORD }}
       TF_ADMIN_USERNAME:             	${{ secrets.TF_ADMIN_USERNAME }}
+      COMMIT_MESSAGE: ${{ github.event_name == 'repository_dispatch' 
+                         ? github.event.client_payload.commit_message 
+                         : github.event.head_commit.message }}
 
     steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Show triggering commit
+        run: |
+          echo "Deploy triggered by:"
+          echo "$COMMIT_MESSAGE"
+
       - name: Checkout Repository
         uses: actions/checkout@v3
 
@@ -172,6 +183,7 @@ jobs:
           ECS_SG_ID=$(jq -r '.ecs_sg_id.value' tf-outputs.json)
           echo "private_subnets=$PRIVATE_SUBNETS_JSON" >> $GITHUB_OUTPUT
           echo "ecs_sg_id=$ECS_SG_ID"             >> $GITHUB_OUTPUT
+
       - name: Run DB migrations as one-off ECS task
         run: |
           TASK_ARN=$(aws ecs run-task \
@@ -196,6 +208,7 @@ jobs:
           aws ecs wait tasks-stopped \
             --cluster "${TF_PROJECT_NAME}-cluster" \
             --tasks "$TASK_ARN"
+            
       - name: Seed admin user as one-off ECS task
         run: |
           TASK_ARN=$(aws ecs run-task \
