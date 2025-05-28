@@ -40,7 +40,6 @@ jobs:
       TF_ADMIN_PASSWORD:             		${{ secrets.TF_ADMIN_PASSWORD }}
       TF_ADMIN_USERNAME:             		${{ secrets.TF_ADMIN_USERNAME }}
 
-
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
@@ -55,30 +54,91 @@ jobs:
       - name: Pre-clean ECS (services, tasks & clusters)
         run: |
           echo "Cleaning up ECS services & tasks before Terraform destroy…"
-          # Delete services
+
+          # --- 1) Scale down & delete matching services ---
           for cluster in $(aws ecs list-clusters --region $AWS_REGION --query 'clusterArns' --output text); do
-            for svc in $(aws ecs list-services --cluster "$cluster" --region $AWS_REGION --query 'serviceArns' --output text); do
+            for svc in $(aws ecs list-services \
+                          --cluster "$cluster" \
+                          --region $AWS_REGION \
+                          --query 'serviceArns' --output text); do
               if echo "$svc" | grep -q "${TF_PROJECT_NAME}"; then
                 echo "Updating & deleting service $svc in $cluster"
-                aws ecs update-service --cluster "$cluster" --service "$svc" --desired-count 0 --region $AWS_REGION
-                aws ecs delete-service --cluster "$cluster" --service "$svc" --force --region $AWS_REGION
+                aws ecs update-service \
+                  --cluster "$cluster" \
+                  --service "$svc" \
+                  --desired-count 0 \
+                  --region $AWS_REGION
+
+                # wait for tasks to drain
+                aws ecs wait services-inactive \
+                  --cluster "$cluster" \
+                  --services "$svc" \
+                  --region $AWS_REGION
+
+                # now delete the service
+                aws ecs delete-service \
+                  --cluster "$cluster" \
+                  --service "$svc" \
+                  --force \
+                  --region $AWS_REGION
               fi
             done
           done
 
-          # Deregister task definitions
-          echo "Deregistering task definitions for ${TF_PROJECT_NAME}-task…"
-          for td in $(aws ecs list-task-definitions --family-prefix "${TF_PROJECT_NAME}-task" --region $AWS_REGION --query 'taskDefinitionArns' --output text); do
-            echo "  deregistering $td"
-            aws ecs deregister-task-definition --task-definition "$td" --region $AWS_REGION
+          # --- 2) Stop any standalone/running tasks ---
+          for cluster in $(aws ecs list-clusters --region $AWS_REGION --query 'clusterArns' --output text); do
+            for task in $(aws ecs list-tasks \
+                            --cluster "$cluster" \
+                            --region $AWS_REGION \
+                            --query 'taskArns' --output text); do
+              if echo "$task" | grep -q "${TF_PROJECT_NAME}"; then
+                echo "Stopping task $task in $cluster"
+                aws ecs stop-task \
+                  --cluster "$cluster" \
+                  --task "$task" \
+                  --region $AWS_REGION
+              fi
+            done
           done
 
-          # Delete clusters
+          # --- 3) Wait for all those tasks to reach STOPPED ---
+          for cluster in $(aws ecs list-clusters --region $AWS_REGION --query 'clusterArns' --output text); do
+            TASKS=$(aws ecs list-tasks \
+                      --cluster "$cluster" \
+                      --region $AWS_REGION \
+                      --desired-status STOPPED \
+                      --query 'taskArns' --output text)
+            if [ -n "$TASKS" ]; then
+              echo "Waiting for tasks to stop in $cluster"
+              aws ecs wait tasks-stopped \
+                --cluster "$cluster" \
+                --tasks $TASKS \
+                --region $AWS_REGION
+            fi
+          done
+
+          # --- 4) Deregister task definitions (optional cleanup) ---
+          echo "Deregistering task definitions for ${TF_PROJECT_NAME}-task…"
+          for td in $(aws ecs list-task-definitions \
+                        --family-prefix "${TF_PROJECT_NAME}-task" \
+                        --region $AWS_REGION \
+                        --query 'taskDefinitionArns' --output text); do
+            echo "  deregistering $td"
+            aws ecs deregister-task-definition \
+              --task-definition "$td" \
+              --region $AWS_REGION
+          done
+
+          # --- 5) Finally delete the now-empty clusters ---
           echo "Deleting ECS clusters matching ${TF_PROJECT_NAME}…"
-          for c in $(aws ecs list-clusters --region $AWS_REGION --query 'clusterArns' --output text); do
+          for c in $(aws ecs list-clusters \
+                       --region $AWS_REGION \
+                       --query 'clusterArns' --output text); do
             if echo "$c" | grep -q "${TF_PROJECT_NAME}"; then
               echo "  deleting cluster $c"
-              aws ecs delete-cluster --cluster "$c" --region $AWS_REGION
+              aws ecs delete-cluster \
+                --cluster "$c" \
+                --region $AWS_REGION
             fi
           done
 
