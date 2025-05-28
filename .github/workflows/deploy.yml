@@ -1,7 +1,7 @@
 # ------------------------------
 # .github/workflows/deploy.yml
 # ------------------------------
-name: "${{ github.event_name == 'repository_dispatch' && format('Deploy to AWS: {0}', github.event.client_payload.commit_message) || format('Deploy to AWS: {0}', github.event.head_commit.message) }}"
+name: Deploy to AWS ECS with Terraform
 
 on:
   push:
