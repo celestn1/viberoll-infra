@@ -17,32 +17,32 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      AWS_REGION:                            eu-west-2
-      TF_PROJECT_NAME:                       ${{ secrets.TF_PROJECT_NAME }}
-      TF_ECR_REPO_NAME:                      ${{ secrets.TF_ECR_REPO_NAME }}
-      TF_CONTAINER_IMAGE:                    ${{ secrets.TF_CONTAINER_IMAGE }}
-      TF_DB_USERNAME:                        ${{ secrets.TF_DB_USERNAME }}
-      TF_DB_NAME:                            ${{ secrets.TF_DB_NAME }}
-      TF_DB_PASSWORD:                        ${{ secrets.TF_DB_PASSWORD }}
-      TF_VPC_CIDR:                           ${{ secrets.TF_VPC_CIDR }}
-      TF_AZ1:                                ${{ secrets.TF_AZ1 }}
-      TF_AZ2:                                ${{ secrets.TF_AZ2 }}
-      TF_HOST:                               ${{ secrets.TF_HOST }}
-      TF_PORT:                               ${{ secrets.TF_PORT }}
-      TF_NODE_ENV:                           ${{ secrets.TF_NODE_ENV }}
-      TF_SALT_ROUNDS:                        ${{ secrets.TF_SALT_ROUNDS }}
-      TF_RPC_URL:                            ${{ secrets.TF_RPC_URL }}
-      TF_WALLET_PRIVATE_KEY:                 ${{ secrets.TF_WALLET_PRIVATE_KEY }}
-      TF_NFT_CONTRACT_ADDRESS:               ${{ secrets.TF_NFT_CONTRACT_ADDRESS }}
-      TF_OPENAI_API_ENDPOINT:                ${{ secrets.TF_OPENAI_API_ENDPOINT }}
-      TF_OPENAI_API_KEY:                     ${{ secrets.TF_OPENAI_API_KEY }}
-      TF_JWT_SECRET:                         ${{ secrets.TF_JWT_SECRET }}
-      TF_JWT_REFRESH_SECRET:                 ${{ secrets.TF_JWT_REFRESH_SECRET }}
-      TF_JWT_ACCESS_TOKEN_EXPIRATION:        ${{ secrets.TF_JWT_ACCESS_TOKEN_EXPIRATION }}
-      TF_JWT_REFRESH_TOKEN_EXPIRATION:       ${{ secrets.TF_JWT_REFRESH_TOKEN_EXPIRATION }}
-      TF_ADMIN_EMAIL:                        ${{ secrets.TF_ADMIN_EMAIL }}
-      TF_ADMIN_PASSWORD:                     ${{ secrets.TF_ADMIN_PASSWORD }}
-      TF_ADMIN_USERNAME:                     ${{ secrets.TF_ADMIN_USERNAME }}
+      AWS_REGION:                    	eu-west-2
+      TF_PROJECT_NAME:               	${{ secrets.TF_PROJECT_NAME }}
+      TF_ECR_REPO_NAME:              	${{ secrets.TF_ECR_REPO_NAME }}
+      TF_CONTAINER_IMAGE:            	${{ secrets.TF_CONTAINER_IMAGE }}
+      TF_DB_USERNAME:                	${{ secrets.TF_DB_USERNAME }}
+      TF_DB_NAME:                    	${{ secrets.TF_DB_NAME }}
+      TF_DB_PASSWORD:                	${{ secrets.TF_DB_PASSWORD }}
+      TF_VPC_CIDR:                   	${{ secrets.TF_VPC_CIDR }}
+      TF_AZ1:                        	${{ secrets.TF_AZ1 }}
+      TF_AZ2:                        	${{ secrets.TF_AZ2 }}
+      TF_HOST:                       	${{ secrets.TF_HOST }}
+      TF_PORT:                       	${{ secrets.TF_PORT }}
+      TF_NODE_ENV:                   	${{ secrets.TF_NODE_ENV }}
+      TF_SALT_ROUNDS:                	${{ secrets.TF_SALT_ROUNDS }}
+      TF_RPC_URL:                    	${{ secrets.TF_RPC_URL }}
+      TF_WALLET_PRIVATE_KEY:         	${{ secrets.TF_WALLET_PRIVATE_KEY }}
+      TF_NFT_CONTRACT_ADDRESS:       	${{ secrets.TF_NFT_CONTRACT_ADDRESS }}
+      TF_OPENAI_API_ENDPOINT:        	${{ secrets.TF_OPENAI_API_ENDPOINT }}
+      TF_OPENAI_API_KEY:             	${{ secrets.TF_OPENAI_API_KEY }}
+      TF_JWT_SECRET:                 	${{ secrets.TF_JWT_SECRET }}
+      TF_JWT_REFRESH_SECRET:         	${{ secrets.TF_JWT_REFRESH_SECRET }}
+      TF_JWT_ACCESS_TOKEN_EXPIRATION:	${{ secrets.TF_JWT_ACCESS_TOKEN_EXPIRATION }}
+      TF_JWT_REFRESH_TOKEN_EXPIRATION:	${{ secrets.TF_JWT_REFRESH_TOKEN_EXPIRATION }}
+      TF_ADMIN_EMAIL:                	${{ secrets.TF_ADMIN_EMAIL }}
+      TF_ADMIN_PASSWORD:             	${{ secrets.TF_ADMIN_PASSWORD }}
+      TF_ADMIN_USERNAME:             	${{ secrets.TF_ADMIN_USERNAME }}
 
     steps:
       - name: Checkout Repository
@@ -73,31 +73,14 @@ jobs:
         run: |
           echo "🔍 Checking required secrets..."
           REQUIRED=(
-            TF_PROJECT_NAME
-            TF_ECR_REPO_NAME
-            TF_CONTAINER_IMAGE
-            TF_DB_USERNAME
-            TF_DB_NAME
-            TF_DB_PASSWORD
-            TF_VPC_CIDR
-            TF_AZ1
-            TF_AZ2
-            TF_HOST
-            TF_PORT
-            TF_NODE_ENV
-            TF_SALT_ROUNDS
-            TF_RPC_URL
-            TF_WALLET_PRIVATE_KEY
-            TF_NFT_CONTRACT_ADDRESS
-            TF_OPENAI_API_ENDPOINT
-            TF_OPENAI_API_KEY
-            TF_JWT_SECRET
-            TF_JWT_REFRESH_SECRET
-            TF_JWT_ACCESS_TOKEN_EXPIRATION
-            TF_JWT_REFRESH_TOKEN_EXPIRATION
-            TF_ADMIN_EMAIL
-            TF_ADMIN_PASSWORD
-            TF_ADMIN_USERNAME
+            TF_PROJECT_NAME TF_ECR_REPO_NAME TF_CONTAINER_IMAGE
+            TF_DB_USERNAME TF_DB_NAME TF_DB_PASSWORD
+            TF_VPC_CIDR TF_AZ1 TF_AZ2 TF_HOST TF_PORT TF_NODE_ENV
+            TF_SALT_ROUNDS TF_RPC_URL TF_WALLET_PRIVATE_KEY
+            TF_NFT_CONTRACT_ADDRESS TF_OPENAI_API_ENDPOINT TF_OPENAI_API_KEY
+            TF_JWT_SECRET TF_JWT_REFRESH_SECRET
+            TF_JWT_ACCESS_TOKEN_EXPIRATION TF_JWT_REFRESH_TOKEN_EXPIRATION
+            TF_ADMIN_EMAIL TF_ADMIN_PASSWORD TF_ADMIN_USERNAME
           )
           for key in "${REQUIRED[@]}"; do
             if [ -z "${!key}" ]; then
@@ -141,7 +124,6 @@ jobs:
             | select(.value == "" or .value == null)
             | .key
           ' secrets.auto.tfvars.json)
-
           if [[ -n "$MISSING" ]]; then
             echo "❌ Found empty secrets: $MISSING"
             exit 1
@@ -188,7 +170,7 @@ jobs:
         id: net
         run: |
           PRIVATE_SUBNETS_JSON=$(jq -c '.private_subnets.value' tf-outputs.json)
-          ECS_SG_ID=$(jq -r     '.ecs_sg_id.value'     tf-outputs.json)
+          ECS_SG_ID=$(jq -r '.ecs_sg_id.value' tf-outputs.json)
           echo "private_subnets=$PRIVATE_SUBNETS_JSON" >> $GITHUB_OUTPUT
           echo "ecs_sg_id=$ECS_SG_ID"             >> $GITHUB_OUTPUT
 
@@ -200,24 +182,22 @@ jobs:
             --network-configuration "awsvpcConfiguration={subnets=${{ steps.net.outputs.private_subnets }},securityGroups=[\"${{ steps.net.outputs.ecs_sg_id }}\"],assignPublicIp=DISABLED}" \
             --task-definition "${TF_PROJECT_NAME}-task" \
             --overrides '{
-              "containerOverrides":[
+              "containerOverrides": [
                 {
-                  "name":"'"${TF_PROJECT_NAME}-app"'",
-                  "environment":[
-                    {"name":"PGSSLMODE","value":"require"},
-                    {"name":"NODE_TLS_REJECT_UNAUTHORIZED","value":"0"}
+                  "name": "'"${TF_PROJECT_NAME}-app"'" ,
+                  "environment": [
+                    {"name": "PGSSLMODE", "value": "require"},
+                    {"name": "NODE_TLS_REJECT_UNAUTHORIZED", "value": "0"}
                   ],
-                  "command":["npm","run","migrate"]
+                  "command": ["npm","run","migrate"]
                 }
               ]
             }' \
             --query 'tasks[0].taskArn' \
             --output text)
-
           aws ecs wait tasks-stopped \
             --cluster "${TF_PROJECT_NAME}-cluster" \
             --tasks "$TASK_ARN"
-
 
       - name: Seed admin user as one-off ECS task
         run: |
@@ -227,20 +207,19 @@ jobs:
             --network-configuration "awsvpcConfiguration={subnets=${{ steps.net.outputs.private_subnets }},securityGroups=[\"${{ steps.net.outputs.ecs_sg_id }}\"],assignPublicIp=DISABLED}" \
             --task-definition "${TF_PROJECT_NAME}-task" \
             --overrides '{
-              "containerOverrides":[
+              "containerOverrides": [
                 {
-                  "name":"'"${TF_PROJECT_NAME}-app"'",
-                  "environment":[
-                    {"name":"PGSSLMODE","value":"require"},
-                    {"name":"NODE_TLS_REJECT_UNAUTHORIZED","value":"0"}
+                  "name": "'"${TF_PROJECT_NAME}-app"'" ,
+                  "environment": [
+                    {"name": "PGSSLMODE", "value": "require"},
+                    {"name": "NODE_TLS_REJECT_UNAUTHORIZED", "value": "0"}
                   ],
-                  "command":["npm","run","seed:admin","--","--email","'"${TF_ADMIN_EMAIL}"'","--password","'"${TF_ADMIN_PASSWORD}"'"]
+                  "command": ["npm","run","seed:admin","--","--email","'"${TF_ADMIN_EMAIL}"'","--password","'"${TF_ADMIN_PASSWORD}"'"]
                 }
               ]
             }' \
             --query 'tasks[0].taskArn' \
             --output text)
-
           aws ecs wait tasks-stopped \
             --cluster "${TF_PROJECT_NAME}-cluster" \
             --tasks "$TASK_ARN"

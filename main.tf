@@ -54,6 +54,15 @@ module "ecs" {
   alb_listener_arn   = module.alb.listener_arn
   project_name       = var.project_name
   secret_arns        = module.secrets.secret_arns
+
+
+  environment = {
+    ALB_DNS                  = module.alb.dns_name
+    ALB_SCHEME               = "https"
+    SWAGGER_SERVER_URL       = "https://${module.alb.dns_name}"
+    PGSSLMODE                = "require"
+    NODE_TLS_REJECT_UNAUTHORIZED = "0"
+  }
 }
 
 module "rds" {

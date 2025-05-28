@@ -47,3 +47,9 @@ variable "aws_region" {
   default     = "eu-west-2"
   description = "AWS region where resources will be deployed"
 }
+
+variable "environment" {
+  type        = map(string)
+  description = "Extra environment variables to set on the ECS container"
+  default     = {}
+}

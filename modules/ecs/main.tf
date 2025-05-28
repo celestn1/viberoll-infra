@@ -114,6 +114,14 @@ resource "aws_ecs_task_definition" "this" {
           hostPort      = 4001
         }
       ],
+
+      environment = [
+        for pair in var.environment : {
+          name  = pair.key
+          value = pair.value
+        }
+      ],
+      
       logConfiguration = {
         logDriver = "awslogs",
         options = {
