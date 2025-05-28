@@ -200,22 +200,24 @@ jobs:
             --network-configuration "awsvpcConfiguration={subnets=${{ steps.net.outputs.private_subnets }},securityGroups=[\"${{ steps.net.outputs.ecs_sg_id }}\"],assignPublicIp=DISABLED}" \
             --task-definition "${TF_PROJECT_NAME}-task" \
             --overrides '{
-                "containerOverrides":[
-                  {
-                    "name":"'"${TF_PROJECT_NAME}-app"'",
-                    "environment":[
-                      {"name":"PGSSLMODE","value":"require"},
-                      {"name":"NODE_TLS_REJECT_UNAUTHORIZED","value":"0"}
-                    ],
-                    "command":["npm","run","migrate"]
-                  }
-                ]
-            }' \	
-            --query 'tasks[0].taskArn' --output text)
+              "containerOverrides":[
+                {
+                  "name":"'"${TF_PROJECT_NAME}-app"'",
+                  "environment":[
+                    {"name":"PGSSLMODE","value":"require"},
+                    {"name":"NODE_TLS_REJECT_UNAUTHORIZED","value":"0"}
+                  ],
+                  "command":["npm","run","migrate"]
+                }
+              ]
+            }' \
+            --query 'tasks[0].taskArn' \
+            --output text)
 
           aws ecs wait tasks-stopped \
             --cluster "${TF_PROJECT_NAME}-cluster" \
             --tasks "$TASK_ARN"
+
 
       - name: Seed admin user as one-off ECS task
         run: |
@@ -235,8 +237,9 @@ jobs:
                   "command":["npm","run","seed:admin","--","--email","'"${TF_ADMIN_EMAIL}"'","--password","'"${TF_ADMIN_PASSWORD}"'"]
                 }
               ]
-            }' \		
-            --query 'tasks[0].taskArn' --output text)
+            }' \
+            --query 'tasks[0].taskArn' \
+            --output text)
 
           aws ecs wait tasks-stopped \
             --cluster "${TF_PROJECT_NAME}-cluster" \
