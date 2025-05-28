@@ -199,7 +199,17 @@ jobs:
             --launch-type FARGATE \
             --network-configuration "awsvpcConfiguration={subnets=${{ steps.net.outputs.private_subnets }},securityGroups=[\"${{ steps.net.outputs.ecs_sg_id }}\"],assignPublicIp=DISABLED}" \
             --task-definition "${TF_PROJECT_NAME}-task" \
-            --overrides '{"containerOverrides":[{"name":"'"${TF_PROJECT_NAME}-app"'","command":["npm","run","migrate"]}]}' \
+            --overrides '{
+                "containerOverrides":[
+                  {
+                    "name":"'"${TF_PROJECT_NAME}-app"'",
+                    "environment":[
+                      {"name":"PGSSLMODE","value":"require"}
+                    ],
+                    "command":["npm","run","migrate"]
+                  }
+                ]
+            }' \
             --query 'tasks[0].taskArn' --output text)
 
           aws ecs wait tasks-stopped \
