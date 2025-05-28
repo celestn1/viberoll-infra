@@ -13,32 +13,32 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      AWS_REGION:                    		eu-west-2
-      TF_PROJECT_NAME:               		${{ secrets.TF_PROJECT_NAME }}
-      TF_ECR_REPO_NAME:              		${{ secrets.TF_ECR_REPO_NAME }}
-      TF_CONTAINER_IMAGE:            		${{ secrets.TF_CONTAINER_IMAGE }}
-      TF_DB_USERNAME:                		${{ secrets.TF_DB_USERNAME }}
-      TF_DB_NAME:                    		${{ secrets.TF_DB_NAME }}
-      TF_DB_PASSWORD:                		${{ secrets.TF_DB_PASSWORD }}
-      TF_VPC_CIDR:                   		${{ secrets.TF_VPC_CIDR }}
-      TF_AZ1:                        		${{ secrets.TF_AZ1 }}
-      TF_AZ2:                        		${{ secrets.TF_AZ2 }}
-      TF_HOST:                       		${{ secrets.TF_HOST }}
-      TF_PORT:                       		${{ secrets.TF_PORT }}
-      TF_NODE_ENV:                   		${{ secrets.TF_NODE_ENV }}
-      TF_SALT_ROUNDS:                		${{ secrets.TF_SALT_ROUNDS }}
-      TF_RPC_URL:                    		${{ secrets.TF_RPC_URL }}
-      TF_WALLET_PRIVATE_KEY:         		${{ secrets.TF_WALLET_PRIVATE_KEY }}
-      TF_NFT_CONTRACT_ADDRESS:       		${{ secrets.TF_NFT_CONTRACT_ADDRESS }}
-      TF_OPENAI_API_ENDPOINT:        		${{ secrets.TF_OPENAI_API_ENDPOINT }}
-      TF_OPENAI_API_KEY:             		${{ secrets.TF_OPENAI_API_KEY }}
-      TF_JWT_SECRET:                 		${{ secrets.TF_JWT_SECRET }}
-      TF_JWT_REFRESH_SECRET:         		${{ secrets.TF_JWT_REFRESH_SECRET }}
-      TF_JWT_ACCESS_TOKEN_EXPIRATION: 		${{ secrets.TF_JWT_ACCESS_TOKEN_EXPIRATION }}
-      TF_JWT_REFRESH_TOKEN_EXPIRATION:  	${{ secrets.TF_JWT_REFRESH_TOKEN_EXPIRATION }}
-      TF_ADMIN_EMAIL:                		${{ secrets.TF_ADMIN_EMAIL }}
-      TF_ADMIN_PASSWORD:             		${{ secrets.TF_ADMIN_PASSWORD }}
-      TF_ADMIN_USERNAME:             		${{ secrets.TF_ADMIN_USERNAME }}
+      AWS_REGION:                            eu-west-2
+      TF_PROJECT_NAME:                       ${{ secrets.TF_PROJECT_NAME }}
+      TF_ECR_REPO_NAME:                      ${{ secrets.TF_ECR_REPO_NAME }}
+      TF_CONTAINER_IMAGE:                    ${{ secrets.TF_CONTAINER_IMAGE }}
+      TF_DB_USERNAME:                        ${{ secrets.TF_DB_USERNAME }}
+      TF_DB_NAME:                            ${{ secrets.TF_DB_NAME }}
+      TF_DB_PASSWORD:                        ${{ secrets.TF_DB_PASSWORD }}
+      TF_VPC_CIDR:                           ${{ secrets.TF_VPC_CIDR }}
+      TF_AZ1:                                ${{ secrets.TF_AZ1 }}
+      TF_AZ2:                                ${{ secrets.TF_AZ2 }}
+      TF_HOST:                               ${{ secrets.TF_HOST }}
+      TF_PORT:                               ${{ secrets.TF_PORT }}
+      TF_NODE_ENV:                           ${{ secrets.TF_NODE_ENV }}
+      TF_SALT_ROUNDS:                        ${{ secrets.TF_SALT_ROUNDS }}
+      TF_RPC_URL:                            ${{ secrets.TF_RPC_URL }}
+      TF_WALLET_PRIVATE_KEY:                 ${{ secrets.TF_WALLET_PRIVATE_KEY }}
+      TF_NFT_CONTRACT_ADDRESS:               ${{ secrets.TF_NFT_CONTRACT_ADDRESS }}
+      TF_OPENAI_API_ENDPOINT:                ${{ secrets.TF_OPENAI_API_ENDPOINT }}
+      TF_OPENAI_API_KEY:                     ${{ secrets.TF_OPENAI_API_KEY }}
+      TF_JWT_SECRET:                         ${{ secrets.TF_JWT_SECRET }}
+      TF_JWT_REFRESH_SECRET:                 ${{ secrets.TF_JWT_REFRESH_SECRET }}
+      TF_JWT_ACCESS_TOKEN_EXPIRATION:        ${{ secrets.TF_JWT_ACCESS_TOKEN_EXPIRATION }}
+      TF_JWT_REFRESH_TOKEN_EXPIRATION:       ${{ secrets.TF_JWT_REFRESH_TOKEN_EXPIRATION }}
+      TF_ADMIN_EMAIL:                        ${{ secrets.TF_ADMIN_EMAIL }}
+      TF_ADMIN_PASSWORD:                     ${{ secrets.TF_ADMIN_PASSWORD }}
+      TF_ADMIN_USERNAME:                     ${{ secrets.TF_ADMIN_USERNAME }}
 
     steps:
       - name: Checkout Repository
@@ -50,97 +50,6 @@ jobs:
           aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region:            ${{ env.AWS_REGION }}
-
-      - name: Pre-clean ECS (services, tasks & clusters)
-        run: |
-          echo "Cleaning up ECS services & tasks before Terraform destroy…"
-
-          # --- 1) Scale down & delete matching services ---
-          for cluster in $(aws ecs list-clusters --region $AWS_REGION --query 'clusterArns' --output text); do
-            for svc in $(aws ecs list-services \
-                          --cluster "$cluster" \
-                          --region $AWS_REGION \
-                          --query 'serviceArns' --output text); do
-              if echo "$svc" | grep -q "${TF_PROJECT_NAME}"; then
-                echo "Updating & deleting service $svc in $cluster"
-                aws ecs update-service \
-                  --cluster "$cluster" \
-                  --service "$svc" \
-                  --desired-count 0 \
-                  --region $AWS_REGION
-
-                # wait for tasks to drain
-                aws ecs wait services-inactive \
-                  --cluster "$cluster" \
-                  --services "$svc" \
-                  --region $AWS_REGION
-
-                # now delete the service
-                aws ecs delete-service \
-                  --cluster "$cluster" \
-                  --service "$svc" \
-                  --force \
-                  --region $AWS_REGION
-              fi
-            done
-          done
-
-          # --- 2) Stop any standalone/running tasks ---
-          for cluster in $(aws ecs list-clusters --region $AWS_REGION --query 'clusterArns' --output text); do
-            for task in $(aws ecs list-tasks \
-                            --cluster "$cluster" \
-                            --region $AWS_REGION \
-                            --query 'taskArns' --output text); do
-              if echo "$task" | grep -q "${TF_PROJECT_NAME}"; then
-                echo "Stopping task $task in $cluster"
-                aws ecs stop-task \
-                  --cluster "$cluster" \
-                  --task "$task" \
-                  --region $AWS_REGION
-              fi
-            done
-          done
-
-          # --- 3) Wait for all those tasks to reach STOPPED ---
-          for cluster in $(aws ecs list-clusters --region $AWS_REGION --query 'clusterArns' --output text); do
-            TASKS=$(aws ecs list-tasks \
-                      --cluster "$cluster" \
-                      --region $AWS_REGION \
-                      --desired-status STOPPED \
-                      --query 'taskArns' --output text)
-            if [ -n "$TASKS" ]; then
-              echo "Waiting for tasks to stop in $cluster"
-              aws ecs wait tasks-stopped \
-                --cluster "$cluster" \
-                --tasks $TASKS \
-                --region $AWS_REGION
-            fi
-          done
-
-          # --- 4) Deregister task definitions (optional cleanup) ---
-          echo "Deregistering task definitions for ${TF_PROJECT_NAME}-task…"
-          for td in $(aws ecs list-task-definitions \
-                        --family-prefix "${TF_PROJECT_NAME}-task" \
-                        --region $AWS_REGION \
-                        --query 'taskDefinitionArns' --output text); do
-            echo "  deregistering $td"
-            aws ecs deregister-task-definition \
-              --task-definition "$td" \
-              --region $AWS_REGION
-          done
-
-          # --- 5) Finally delete the now-empty clusters ---
-          echo "Deleting ECS clusters matching ${TF_PROJECT_NAME}…"
-          for c in $(aws ecs list-clusters \
-                       --region $AWS_REGION \
-                       --query 'clusterArns' --output text); do
-            if echo "$c" | grep -q "${TF_PROJECT_NAME}"; then
-              echo "  deleting cluster $c"
-              aws ecs delete-cluster \
-                --cluster "$c" \
-                --region $AWS_REGION
-            fi
-          done
 
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v3
@@ -180,7 +89,6 @@ jobs:
             }
           }
           EOF
-
       - name: Terraform Plan (Destroy)
         run: |
           terraform plan -destroy -input=false \
@@ -198,7 +106,6 @@ jobs:
             -var="environment=${TF_NODE_ENV}" \
             -var="azs=[\"${TF_AZ1}\",\"${TF_AZ2}\"]" \
             -out=tfplan
-
       - name: Show Destroy Plan (Preview)
         run: terraform show -no-color tfplan
 
@@ -214,32 +121,64 @@ jobs:
             grep "${{ env.TF_PROJECT_NAME }}" | \
             xargs -I {} aws secretsmanager delete-secret \
               --secret-id {} --force-delete-without-recovery
-
       - name: 💥 List and Delete All ECR Repos Related to Project
         run: |
           echo "Searching for ECR repos related to: $TF_PROJECT_NAME"
+          
           repos=$(aws ecr describe-repositories --region "$AWS_REGION" \
             --query "repositories[?contains(repositoryName, \`$TF_PROJECT_NAME\`)].repositoryName" \
             --output text)
           if [ -z "$repos" ]; then
-            echo "✅ No matching ECR repositories found"
+            echo "✅ No matching ECR repositories found for project: $TF_PROJECT_NAME"
           else
+            echo "The following repositories will be deleted:"
+            echo "$repos" | tr '\t' '\n'
+            echo
             echo "$repos" | tr '\t' '\n' | while read repo; do
-              echo "Deleting ECR repo: $repo"
+              echo "Deleting ECR repository: $repo"
               aws ecr delete-repository --repository-name "$repo" --force --region "$AWS_REGION"
             done
           fi
-
-      - name: 💥 Clean up ElastiCache Redis Clusters
+      - name: Cleanup ECS Services and Task Definitions
         run: |
-          echo "Deleting ElastiCache clusters matching ${TF_PROJECT_NAME}..."
-          for cluster in $(aws elasticache describe-cache-clusters --region $AWS_REGION \
-              --query 'CacheClusters[?contains(CacheClusterId, `'"${TF_PROJECT_NAME}"'`)].CacheClusterId' \
-              --output text); do
-            echo "  deleting $cluster"
-            aws elasticache delete-cache-cluster --cache-cluster-id "$cluster" --region $AWS_REGION
+          echo "Cleaning ECS services related to: ${TF_PROJECT_NAME}"
+          CLUSTERS=$(aws ecs list-clusters --region $AWS_REGION --query 'clusterArns[*]' --output text)
+          for CLUSTER in $CLUSTERS; do
+            echo "Cluster: $CLUSTER"
+            SERVICES=$(aws ecs list-services --cluster $CLUSTER --region $AWS_REGION --query 'serviceArns[*]' --output text)
+            for SERVICE in $SERVICES; do
+              if echo "$SERVICE" | grep -q "${TF_PROJECT_NAME}"; then
+                echo "Deleting ECS service: $SERVICE"
+                aws ecs update-service --cluster $CLUSTER --service $SERVICE --desired-count 0 --region $AWS_REGION
+                aws ecs delete-service --cluster $CLUSTER --service $SERVICE --force --region $AWS_REGION
+              fi
+            done
           done
-
+          echo "Deregistering task definitions..."
+          TASKS=$(aws ecs list-task-definitions --region $AWS_REGION --query 'taskDefinitionArns[*]' --output text)
+          for TASK in $TASKS; do
+            if echo "$TASK" | grep -q "${TF_PROJECT_NAME}"; then
+              echo "Deregistering task: $TASK"
+              aws ecs deregister-task-definition --task-definition $TASK --region $AWS_REGION
+            fi
+          done
+      
+      - name: Delete ECS Clusters
+        run: |
+          echo "Deleting ECS clusters matching ${TF_PROJECT_NAME}..."
+          aws ecs list-clusters --region $AWS_REGION --query 'clusterArns[*]' --output text | \
+          tr '\t' '\n' | grep "${TF_PROJECT_NAME}" | while read cluster; do
+            echo "Deleting cluster: $cluster"
+            aws ecs delete-cluster --cluster "$cluster" --region $AWS_REGION
+          done
+      - name: Deregister Task Definitions
+        run: |
+          FAMILY="${TF_PROJECT_NAME}-task"
+          echo "Fetching revisions for $FAMILY..."
+          for arn in $(aws ecs list-task-definitions --family-prefix "$FAMILY" --region $AWS_REGION --query 'taskDefinitionArns' --output text); do
+            echo "Deregistering $arn"
+            aws ecs deregister-task-definition --task-definition "$arn" --region $AWS_REGION
+          done          
       - name: ✅ Confirm Teardown Complete
         run: |
           echo "✅ Infrastructure teardown complete for project: ${TF_PROJECT_NAME}"
