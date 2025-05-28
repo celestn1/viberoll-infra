@@ -58,9 +58,9 @@ module "ecs" {
   secret_arns        = module.secrets.secret_arns
 
   environment = {
-    ALB_DNS                      = module.alb.dns_name
+    ALB_DNS                      = module.alb.alb_dns
     ALB_SCHEME                   = "https"
-    SWAGGER_SERVER_URL           = "https://${module.alb.dns_name}"
+    SWAGGER_SERVER_URL           = "https://${module.alb.alb_dns}"
     PGSSLMODE                    = "require"
     NODE_TLS_REJECT_UNAUTHORIZED = "0"
   }

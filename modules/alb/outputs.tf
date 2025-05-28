@@ -7,7 +7,9 @@ output "alb_arn" {
 }
 
 output "alb_dns" {
-  value = var.create_alb ? aws_lb.alb[0].dns_name : ""
+  description = "The DNS name of the Application Load Balancer"
+  # if we're creating the ALB ourselves, grab its DNS, otherwise empty
+  value       = var.create_alb ? aws_lb.alb[0].dns_name : ""
 }
 
 output "target_group_arn" {
