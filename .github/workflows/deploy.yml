@@ -18,7 +18,7 @@ jobs:
 
     concurrency:
       group: infra-deploy
-      cancel-in-progress: true    
+      cancel-in-progress: true
 
     env:
       AWS_REGION:                    	eu-west-2
@@ -208,7 +208,7 @@ jobs:
           aws ecs wait tasks-stopped \
             --cluster "${TF_PROJECT_NAME}-cluster" \
             --tasks "$TASK_ARN"
-            
+
       - name: Seed admin user as one-off ECS task
         run: |
           TASK_ARN=$(aws ecs run-task \
